@@ -13,11 +13,28 @@ FABQ-RC is a new 1-bit quantization method for large language models that adapts
 ## Files
 
 ```
-fabq_rc/
-├── FABQ_RC_SPEC.md    ← Full method specification (read this first)
-├── FABQ_RC.ipynb       ← Kaggle notebook (upload to Kaggle to run)
-└── README.md          ← This file
+fabq-rc/
+├── FABQ_RC_SPEC.md                        ← Full method specification
+├── FABQ_RC.ipynb                          ← Standalone experiments notebook
+├── FABQ_RC_Kaggle.ipynb                   ← Original Kaggle notebook
+├── FABQ-RC-real-eval.ipynb                ← End-to-end eval + Rust export
+└── README.md                              ← This file
 ```
+
+## Kaggle Notebooks
+
+- **FABQ-RC Real Eval** (main working notebook): https://www.kaggle.com/code/zacharymaronek/fabq-rc-real-evaluation-rust-deployment
+- **FABQ-RC**: https://www.kaggle.com/code/zacharymaronek/fabq-rc
+
+**To work on Kaggle:** clone this repo into Kaggle, edit the notebooks there, and pull changes back here. Or work locally and push to this repo, then pull into Kaggle.
+
+## Iteration Workflow
+
+```
+Kaggle → error → paste to Marble (me) → I fix in this repo → push → verify → tell you
+```
+
+See `kaggle_work/PROTOCOL.md` in your OpenClaw workspace for the full workflow.
 
 ---
 
