@@ -1,0 +1,45 @@
+Fields count: 15
+Tensors count: 225
+
+First 20 fields:
+  GGUF.version: ReaderField(offset=4, name='GGUF.version', parts=[memmap([3], dtype=uint32)], data=[0], types=[<GGUFValueType.UINT32: 4>])
+  GGUF.tensor_count: ReaderField(offset=8, name='GGUF.tensor_count', parts=[memmap([225], dtype=uint64)], data=[0], types=[<GGUFValueType.UINT64: 10>])
+  GGUF.kv_count: ReaderField(offset=16, name='GGUF.kv_count', parts=[memmap([12], dtype=uint64)], data=[0], types=[<GGUFValueType.UINT64: 10>])
+  general.architecture: ReaderField(offset=24, name='general.architecture', parts=[memmap([20], dtype=uint64), memmap([103, 101, 110, 101, 114,  97, 108,  46,  97, 114,  99, 104, 105,
+        116, 101,  99, 116, 117, 114, 101], dtype=uint8), memmap([8], dtype=uint32), memmap([7], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108], dtype=uint8)], data=[4], types=[<GGUFValueType.STRING: 8>])
+  mistral.embedding_length: ReaderField(offset=71, name='mistral.embedding_length', parts=[memmap([24], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108,  46, 101, 109,  98, 101, 100,
+        100, 105, 110, 103,  95, 108, 101, 110, 103, 116, 104],
+       dtype=uint8), memmap([4], dtype=uint32), memmap([4096], dtype=uint32)], data=[3], types=[<GGUFValueType.UINT32: 4>])
+  mistral.attention.head_count: ReaderField(offset=111, name='mistral.attention.head_count', parts=[memmap([28], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108,  46,  97, 116, 116, 101, 110,
+        116, 105, 111, 110,  46, 104, 101,  97, 100,  95,  99, 111, 117,
+        110, 116], dtype=uint8), memmap([4], dtype=uint32), memmap([32], dtype=uint32)], data=[3], types=[<GGUFValueType.UINT32: 4>])
+  mistral.attention.head_count_kv: ReaderField(offset=155, name='mistral.attention.head_count_kv', parts=[memmap([31], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108,  46,  97, 116, 116, 101, 110,
+        116, 105, 111, 110,  46, 104, 101,  97, 100,  95,  99, 111, 117,
+        110, 116,  95, 107, 118], dtype=uint8), memmap([4], dtype=uint32), memmap([8], dtype=uint32)], data=[3], types=[<GGUFValueType.UINT32: 4>])
+  mistral.block_count: ReaderField(offset=202, name='mistral.block_count', parts=[memmap([19], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108,  46,  98, 108, 111,  99, 107,
+         95,  99, 111, 117, 110, 116], dtype=uint8), memmap([4], dtype=uint32), memmap([32], dtype=uint32)], data=[3], types=[<GGUFValueType.UINT32: 4>])
+  mistral.feed_forward_length: ReaderField(offset=237, name='mistral.feed_forward_length', parts=[memmap([27], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108,  46, 102, 101, 101, 100,  95,
+        102, 111, 114, 119,  97, 114, 100,  95, 108, 101, 110, 103, 116,
+        104], dtype=uint8), memmap([4], dtype=uint32), memmap([14336], dtype=uint32)], data=[3], types=[<GGUFValueType.UINT32: 4>])
+  mistral.attention.layer_norm_rms_epsilon: ReaderField(offset=280, name='mistral.attention.layer_norm_rms_epsilon', parts=[memmap([40], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108,  46,  97, 116, 116, 101, 110,
+        116, 105, 111, 110,  46, 108,  97, 121, 101, 114,  95, 110, 111,
+        114, 109,  95, 114, 109, 115,  95, 101, 112, 115, 105, 108, 111,
+        110], dtype=uint8), memmap([6], dtype=uint32), memmap([1.e-05], dtype=float32)], data=[3], types=[<GGUFValueType.FLOAT32: 6>])
+  mistral.context_length: ReaderField(offset=336, name='mistral.context_length', parts=[memmap([22], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108,  46,  99, 111, 110, 116, 101,
+        120, 116,  95, 108, 101, 110, 103, 116, 104], dtype=uint8), memmap([4], dtype=uint32), memmap([32768], dtype=uint32)], data=[3], types=[<GGUFValueType.UINT32: 4>])
+  mistral.rope.freq_base: ReaderField(offset=374, name='mistral.rope.freq_base', parts=[memmap([22], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108,  46, 114, 111, 112, 101,  46,
+        102, 114, 101, 113,  95,  98,  97, 115, 101], dtype=uint8), memmap([6], dtype=uint32), memmap([1.e+06], dtype=float32)], data=[3], types=[<GGUFValueType.FLOAT32: 6>])
+  general.quantization_version: ReaderField(offset=412, name='general.quantization_version', parts=[memmap([28], dtype=uint64), memmap([103, 101, 110, 101, 114,  97, 108,  46, 113, 117,  97, 110, 116,
+        105, 122,  97, 116, 105, 111, 110,  95, 118, 101, 114, 115, 105,
+        111, 110], dtype=uint8), memmap([4], dtype=uint32), memmap([2], dtype=uint32)], data=[3], types=[<GGUFValueType.UINT32: 4>])
+  tokenizer.ggml.model: ReaderField(offset=456, name='tokenizer.ggml.model', parts=[memmap([20], dtype=uint64), memmap([116, 111, 107, 101, 110, 105, 122, 101, 114,  46, 103, 103, 109,
+        108,  46, 109, 111, 100, 101, 108], dtype=uint8), memmap([8], dtype=uint32), memmap([5], dtype=uint64), memmap([108, 108,  97, 109,  97], dtype=uint8)], data=[4], types=[<GGUFValueType.STRING: 8>])
+  mistral.vocab_size: ReaderField(offset=501, name='mistral.vocab_size', parts=[memmap([18], dtype=uint64), memmap([109, 105, 115, 116, 114,  97, 108,  46, 118, 111,  99,  97,  98,
+         95, 115, 105, 122, 101], dtype=uint8), memmap([4], dtype=uint32), memmap([32000], dtype=uint32)], data=[3], types=[<GGUFValueType.UINT32: 4>])
+
+First 20 tensors:
+Traceback (most recent call last):
+  File "c:\Users\Zwmar\projects\fabq-rc\inspect_gguf.py", line 9, in <module>
+    for name, t in list(r.tensors.items())[:20]:
+                        ^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'items'

@@ -1,0 +1,6 @@
+Fields: 17
+Tensors: 225
+Key fields:
+  general.architecture: present
+  mistral.vocab_size: present
+  tokenizer.ggml.model: present
