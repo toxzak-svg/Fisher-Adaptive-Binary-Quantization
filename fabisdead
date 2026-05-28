@@ -1,4 +1,4 @@
-You can likely get a Qwen3.5/3.6‑35B‑A3B into “no real VRAM required” territory with a hybrid variable‑precision scheme: aggressively low‑bit + offload for most weights, with high‑precision “islands” for the parts that dominate perplexity and activation dynamics. What follows is a concrete research‑prototype plan you can actually implement and iterate on. [arxiv](https://arxiv.org/html/2411.02530v1)
+You can likely get a Qwen3.5/3.6‑35B‑A3B into minimal VRAM required territory with a hybrid variable‑precision scheme: aggressively low‑bit + offload for most weights, with high‑precision “islands” for the parts that dominate perplexity and activation dynamics. What follows is a concrete research‑prototype plan you can actually implement and iterate on. [arxiv](https://arxiv.org/html/2411.02530v1)
 
 ***
 
