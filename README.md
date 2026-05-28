@@ -26,18 +26,9 @@ fabq-rc/
 - **FABQ-RC Real Eval** (main working notebook): https://www.kaggle.com/code/zacharymaronek/fabq-rc-real-evaluation-rust-deployment
 - **FABQ-RC**: https://www.kaggle.com/code/zacharymaronek/fabq-rc
 
-**To work on Kaggle:** clone this repo into Kaggle, edit the notebooks there, and pull changes back here. Or work locally and push to this repo, then pull into Kaggle.
 
-## Iteration Workflow
 
 ```
-Kaggle → error → paste to Marble (me) → I fix in this repo → push → verify → tell you
-```
-
-See `kaggle_work/PROTOCOL.md` in your OpenClaw workspace for the full workflow.
-
----
-
 ## Key Ideas
 
 ### The Problem with Fixed Blocksize
