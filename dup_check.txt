@@ -1,0 +1,12 @@
+Cell 35 len=880
+Cell 36 len=1278
+Are they identical? False
+
+Cell 35 first 200 chars:
+"import torch\nfrom huggingface_hub import hf_hub_download\nfrom huggingface_hub import hf_hub_download\n\n# Re-fetch lost credentials and globals after restart\nhf_token = os.environ.get('HF_TOKEN', 'YOUR_"
+
+Cell 36 first 200 chars:
+'import torch\nfrom huggingface_hub import hf_hub_download\nfrom huggingface_hub import hf_hub_download\n\n# Define missing variables\nREPO_ID = "toxzak/Qwen3.6-35B-A3B-FABQ-RC"\nFILENAME = "quantized_model.'
+Cell 38 first line: 'import gc'
+Cell 42 first line: 'import gc'
+Cell 43 first line: 'import gc'

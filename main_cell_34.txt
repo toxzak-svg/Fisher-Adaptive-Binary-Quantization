@@ -1,0 +1,2 @@
+### Memory-Optimized Model Re-instantiation
+In this step, we clear the previous 'hybrid' model (which used 69 GB) and re-initialize the model using the `meta` device. This allows us to build the architecture without allocating any VRAM. We then swap in our QuantizedLinear layers and load the weights, targeting a sub-10 GB footprint.

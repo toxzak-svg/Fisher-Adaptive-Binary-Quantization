@@ -1,0 +1,32 @@
+from huggingface_hub import HfApi, create_repo
+import torch
+import os
+
+REPO_ID = "toxzak/Qwen3.6-27B-FABQ-RC"
+api = HfApi(token=hf_token)
+
+try:
+    create_repo(repo_id=REPO_ID, token=hf_token, exist_ok=True)
+
+    TEMP_FILE = "model_27b_fabq.pth"
+    print(f"ᐒ Packing and saving state_dict locally...")
+
+    # Only save necessary persistent components to keep the file at ~5.5GB
+    full_sd = model.state_dict()
+    clean_sd = {k: v for k, v in full_sd.items() if not k.endswith('_fisher_buf')}
+
+    torch.save(clean_sd, TEMP_FILE)
+    del full_sd, clean_sd
+
+    print(f"⌲ Uploading to Hugging Face...")
+    api.upload_file(
+        path_or_fileobj=TEMP_FILE,
+        path_in_repo="quantized_model.pth",
+        repo_id=REPO_ID,
+        repo_type="model"
+    )
+
+    os.remove(TEMP_FILE)
+    print("✅ Upload successful and local cleanup complete!")
+except Exception as e:
+    print(f"❌ Error during HF upload: {e}")

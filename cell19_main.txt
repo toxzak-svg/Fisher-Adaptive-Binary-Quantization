@@ -1,0 +1,38 @@
+INT4_FRACTION = 0.05  # Keep top 5% Fisher channels as int4
+
+def allocate_precision(fisher_dict, int4_fraction=0.05):
+    """
+    For each linear layer, sort channels by Fisher and allocate precision.
+    """
+    allocation = {}
+    for name, fisher in fisher_dict.items():
+        out_channels = fisher.shape[0]
+        # Ensure we don't accidentally treat 0-dim or scalar fishers as lists
+        if fisher.dim() == 0:
+            fisher = fisher.unsqueeze(0)
+            out_channels = 1
+
+        n_int8 = max(1, int(out_channels * int4_fraction))
+        # Handle layers with very few channels
+        if out_channels <= 1:
+            n_int8 = 1
+
+        order = torch.argsort(fisher, descending=True)
+        alloc = {}
+        for rank, ch in enumerate(order):
+            alloc[int(ch)] = 'int8' if rank < n_int8 else 'binary'
+        allocation[name] = alloc
+    return allocation
+
+# Recalculate allocation
+allocation = allocate_precision(fisher_scores, INT4_FRACTION)
+
+# Summarize results
+total_channels = sum(len(a) for a in allocation.values())
+int8_channels = sum(sum(1 for v in a.values() if v == 'int8') for a in allocation.values())
+binary_channels = total_channels - int8_channels
+
+print(f"📊 Channel allocation summary:")
+print(f"   Total layers processed: {len(allocation)}")
+print(f"   int8 channels:   {int8_channels:,} ({100*int8_channels/max(1, total_channels):.1f}%)")
+print(f"   binary channels: {binary_channels:,} ({100*binary_channels/max(1, total_channels):.1f}%)")

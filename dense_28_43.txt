@@ -1,0 +1,15 @@
+Cell 28: len=230, first100="### Loading the Quantized Model\n\nTo load the model, you'll need to re-instantiate the original model"
+Cell 29: len=119, first100='### Workaround for Download Hanging\nCopy the model directly to your Google Drive to bypass the brows'
+Cell 30: len=1003, first100='# from huggingface_hub import HfApi, create_repo\n# import torch\n# import os\n\n# # 1. Define repo deta'
+Cell 31: len=61, first100='### 3.7 Verify Dynamic Temperature Scaling & Memory Footprint'
+Cell 32: len=334, first100="### Memory-Optimized Model Re-instantiation\nIn this step, we clear the previous 'hybrid' model (whic"
+Cell 33: len=132, first100='<a id="4"></a>\n## 4. Evaluation\n\nWe evaluate on three axes: **perplexity** (primary), **downstream b'
+Cell 34: len=1815, first100='import gc\nimport math\nimport torch\nimport torch.nn.functional as F\nfrom tqdm.auto import tqdm\nfrom d'
+Cell 35: len=1682, first100='import gc\nimport torch\nfrom transformers import AutoModelForCausalLM, AutoTokenizer\n\ntest_model_name'
+Cell 36: len=38, first100='<a id="5"></a>\n## 5. Results Dashboard'
+Cell 37: len=935, first100='import matplotlib.pyplot as plt\n\n# Dashboard visualizing FABQ-RC results\nfig, axes = plt.subplots(1,'
+Cell 38: len=253, first100='### 5.1 Precision Distribution across Model Depth\n\nThis visualization shows where the model is alloc'
+Cell 39: len=1002, first100='import matplotlib.patches as mpatches\n\n# Prepare data for precision heatmap\nlayer_precision_data = ['
+Cell 40: len=476, first100='### Key Results Summary\n\n| Metric | FABQ-RC | Q1_0_g128 | BiLLM (70B) |\n|--------|---------|--------'
+Cell 41: len=90, first100='The `model` object now contains the FABQ-RC quantized layers, ready for direct evaluation.'
+Cell 42: len=891, first100='---\n\n## Conclusion\n\nFABQ-RC demonstrates that **adaptive per-layer blocksize** is the biggest untapp'

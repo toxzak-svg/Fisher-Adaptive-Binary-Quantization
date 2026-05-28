@@ -1,0 +1,210 @@
+You can likely get a Qwen3.5/3.6‑35B‑A3B into “no real VRAM required” territory with a hybrid variable‑precision scheme: aggressively low‑bit + offload for most weights, with high‑precision “islands” for the parts that dominate perplexity and activation dynamics. What follows is a concrete research‑prototype plan you can actually implement and iterate on. [arxiv](https://arxiv.org/html/2411.02530v1)
+
+***
+
+## 1. Clarify the constraints and target
+
+First, let’s pin down what “usable without VRAM” means in engineering terms for this prototype.
+
+You probably want something like:
+
+- Host‑RAM only (or CPU + tiny GPU cache):  
+  - All weights resident in system RAM.  
+  - Optional: a small GPU (e.g. 4–8 GB) acting as an on‑demand cache for a few layers at a time.
+- Quality target:  
+  - Perplexity within ≈3–5% of the FP16/bfloat baseline on WikiText2 or an equivalent corpus. [linkedin](https://www.linkedin.com/posts/yotta-labs_how-to-run-qwen36-35b-a3b-on-a-single-gpu-activity-7453419517604720640-INE_)
+  - Subjective “vibes” (instruction‑following, reasoning) matching good Q4_K / AWQ baselines on the same model. [kaitchup.substack](https://kaitchup.substack.com/p/qwen35-quantization-similar-accuracy)
+- Size target:  
+  - 35B parameters, currently ~70 GB in FP16.  
+  - With an effective average of ~3–4 bits/parameter you’re looking at ~13–18 GB raw weights, plus some metadata. [letsdatascience](https://letsdatascience.com/blog/llm-quantization-run-any-model-on-consumer-hardware)
+  - That’s absolutely RAM‑friendly and only needs streaming to CPU caches, not VRAM.
+
+Given how well Qwen3.5/3.6‑35B‑A3B already responds to strong 4‑bit schemes (AWQ, GPTQ, HQQ etc.), you’re starting from a model that demonstrably tolerates low‑bit compression with small perplexity hits. [reddit](https://www.reddit.com/r/LocalLLaMA/comments/1rfds1h/qwen3535ba3b_q4_quantization_comparison/)
+
+***
+
+## 2. Concept: variable quantization by *error budget*
+
+The core invention angle I’d recommend is: **bit‑width allocation driven by a global error budget on perplexity, not fixed per‑tensor schemes.**  
+
+Instead of “all weights 4‑bit, maybe some layers 8‑bit,” you:
+
+1. Define a *perplexity loss budget* (e.g. +3% PPL on a validation set).  
+2. Quantize different regions (weights, activations, KV cache) with different bit‑widths and quantizers under a global optimization that keeps you within that budget.
+
+Concretely, decompose variability along these axes:
+
+- By component:
+  - Embeddings (token, position, rotary, etc.)
+  - Attention weights (Q, K, V, O)
+  - MLPs (up / gate / down)
+  - Norms and routing (for A3B’s experts)
+  - KV cache during inference
+- By structure:
+  - Per‑channel, per‑group, or per‑block quantization (GPTQ/AWQ‑style) where it helps the most. [jarvislabs](https://jarvislabs.ai/blog/vllm-quantization-complete-guide-benchmarks)
+  - Special handling for high‑saliency weights (AWQ notion of “salient” ~1% weights). [linkedin](https://www.linkedin.com/posts/yotta-labs_how-to-run-qwen36-35b-a3b-on-a-single-gpu-activity-7453419517604720640-INE_)
+- By precision:
+  - 2, 3, 4, 6 bits for most weights.
+  - 8–16 bits for “critical” spots (e.g. layernorm scales, a subset of attention/MLP channels, routing heads).
+
+Think of it as a global knapsack:
+
+- Each *quantization decision* (e.g. “make Q_proj in layer 20 go from 6→3 bits with per‑channel GPTQ”) has:
+  - A *size gain* in bits saved.
+  - A *perplexity penalty* measured via a small calibration batch.
+- You allocate bits where they reduce PPL penalty per bit the most, until you hit the size limit you want.
+
+That’s the core research idea; everything else is implementation.
+
+***
+
+## 3. Prototype architecture: how to structure the method
+
+Here’s an end‑to‑end prototype design that you can run layer‑wise on a single modest GPU with the rest on CPU, which is how most AWQ/GPTQ flows work today. [reddit](https://www.reddit.com/r/LocalLLaMA/comments/16brvb9/can_i_quantize_the_model_that_doesnt_fit_in_vram/)
+
+### 3.1 Calibration and sensitivity analysis
+
+1. **Calibration dataset:**
+   - Grab ~2–10k sentences from a corpus that matches your deployment (e.g. WikiText, instruction logs, code mix, etc.). [newsletter.maartengrootendorst](https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization)
+2. **Baseline forward pass:**
+   - Run the FP16/bfloat model on this calibration set and store:
+     - Per‑layer outputs.
+     - Per‑token log‑probs and full‑sequence perplexity. [arxiv](https://arxiv.org/html/2411.02530v1)
+3. **Local sensitivity sweeps:**
+   - For each module (e.g. layer L, weight matrix W):
+     - Try a small grid of quantization configurations:
+       - 3 vs 4 vs 6 bits.
+       - Symmetric vs asymmetric.
+       - Per‑tensor vs per‑channel vs per‑group scales.
+       - With and without “salient weight” protection à la AWQ. [jarvislabs](https://jarvislabs.ai/blog/vllm-quantization-complete-guide-benchmarks)
+     - Measure local increase in:
+       - Reconstruction error (||W − Q(W)|| statistics).
+       - Layer output error (||y_fp − y_q||).
+       - Perplexity delta on calib set when *only that module* is quantized.
+
+This gives you a table of “options” per module with (bits, size_savings, estimated_ppl_penalty). This is your error‑budget design space.
+
+### 3.2 Global bit allocation (greedy knapsack)
+
+Now cast it as an optimization:
+
+- For each module m and configuration c:
+  - Let \(\Delta S_{m,c}\) be size savings versus FP16.
+  - Let \(\Delta P_{m,c}\) be perplexity increase.
+- Budgets:
+  - Total size ≤ target size S\_target.
+  - Total perplexity ≤ P\_base × (1 + ε), with ε being say 0.03–0.05.
+
+Prototype‑friendly approach:
+
+- Start from all modules at a safe high‑bit configuration (e.g. 8‑bit per‑channel).
+- Maintain a priority queue of candidate *downgrades* (e.g. 8b→4b, 4b→3b) sorted by \(\Delta S / \Delta P\) (bits saved per unit perplexity loss).
+- Iteratively apply the best downgrade:
+  - Update running size and PPL estimate.
+  - Stop when:
+    - Size target reached, or
+    - Next step would exceed perplexity budget.
+
+This gives you a *variable‑precision profile* for every matrix in the model.
+
+You can make this fancier (e.g. small second‑order correction where multiple modules interact), but a greedy pass already gives you a solid novel method that’s easy to implement and publish.
+
+***
+
+## 4. Representation & runtime for “no VRAM”
+
+The second half of your “invention” is how you make this usable in practice on CPU‑only or tiny‑GPU systems.
+
+### 4.1 Weight storage layout
+
+- Store all weights in a custom packed format (e.g. a GGUF‑like container, or your own) with:
+  - Bit‑width per tensor or per‑group.
+  - Scale/zero‑point per tensor/group/channel as needed.
+  - Flags for “high‑precision islands” (e.g. keep 1–2% of columns in FP16). [letsdatascience](https://letsdatascience.com/blog/llm-quantization-run-any-model-on-consumer-hardware)
+- For CPU execution, you’ll want to:
+  - Align groups to bytes/words for easy unpack.
+  - Group channels into blocks that match your inner kernel width (e.g. 32, 64, 128 channels).
+
+This is similar in spirit to how Q4\_K\_M and related schemes pack weights, but with per‑tensor variability and mixed high‑precision slices. [linkedin](https://www.linkedin.com/posts/yotta-labs_how-to-run-qwen36-35b-a3b-on-a-single-gpu-activity-7453419517604720640-INE_)
+
+### 4.2 Compute strategy (CPU + optional tiny GPU)
+
+Usable without VRAM in practice looks like:
+
+- **CPU‑only path:**
+  - All weights in host RAM.
+  - Quantized matrix × activation kernels using int8/int4/bit‑packed compute on CPU (SIMD).
+  - KV cache also quantized (e.g. 4–6 bits) with dequantization on the fly. [arxiv](https://arxiv.org/html/2411.02530v1)
+- **Optional GPU assist:**
+  - Keep 0–2 layers at a time in GPU VRAM (or even just activations).
+  - Use pinned memory + async transfers to hide some latency.
+  - GPU kernels can decode your variable‑bit weights, multiply with FP16 activations, and write back FP16 or FP8.
+
+You do not need the entire 35B in VRAM; many practitioners already run 35B‑class Qwen 3.5/3.6 on a single 24 GB GPU with aggressive 4‑bit quantization and clever paging. Your method pushes that further by handling the full model in RAM and only ever streaming slices. [pub.towardsai](https://pub.towardsai.net/your-ai-agent-is-goldfish-brained-qwen3-6-35b-a3b-is-the-fix-b6a687c2094a)
+
+***
+
+## 5. Specific technical choices for a first implementation
+
+To make this concrete enough that you could code it in a long weekend:
+
+### 5.1 Base quantizers
+
+- For weights:
+  - Use a GPTQ‑style solver for low‑bit per‑channel or per‑group quantization. [jarvislabs](https://jarvislabs.ai/blog/vllm-quantization-complete-guide-benchmarks)
+  - Consider HQQ for faster, data‑free fallback on less sensitive modules. [letsdatascience](https://letsdatascience.com/blog/llm-quantization-run-any-model-on-consumer-hardware)
+  - Always keep:
+    - LayerNorm γ/β in FP16.
+    - A small AWQ‑style “salient subset” of columns in FP16/FP8 for each linear that shows very high activation correlation with PPL. [linkedin](https://www.linkedin.com/posts/yotta-labs_how-to-run-qwen36-35b-a3b-on-a-single-gpu-activity-7453419517604720640-INE_)
+- For activations:
+  - Start by leaving activations in FP16/FP32 to simplify.
+  - Later, add 8‑bit or 4‑bit activation quantization on non‑critical paths; use straight‑through estimation or learned clipping if you go into QAT.
+
+### 5.2 KV‑cache quantization
+
+Memory footprint at long context is often dominated by KV cache, not just weights. [arxiv](https://arxiv.org/html/2411.02530v1)
+
+Prototype:
+
+- Quantize K and V to 4–6 bits with per‑head or per‑group scales.
+- Keep attention scores and softmax in FP16/FP32.
+- Evaluate on long‑context perplexity or a synthetic recall benchmark to ensure no catastrophic degradation.
+
+### 5.3 Fast profiling loop
+
+Since you’re comfortable hacking infra:
+
+- Build a small Python harness using:
+  - vLLM or llama.cpp’s Python bindings as a starting point, or
+  - Direct PyTorch model with custom quantization modules.
+- Implement “quantize one module, run calibration, measure PPL.”
+- Parallelize across modules with Ray / multiprocessing to speed up the sensitivity sweep.
+
+Once you have the module‑wise error table, the global allocator is just a small knapsack‑like search over a few thousand decisions, which is trivial.
+
+***
+
+## 6. How to frame this as an invention
+
+Key points to emphasize in documentation / a draft patent / writeup:
+
+- **Global error‑budgeted variable quantization**:
+  - Bit‑widths and quantizers selected under an explicit global constraint on perplexity, not uniform per‑layer heuristics.
+- **Joint treatment of weights, KV cache, and high‑precision islands**:
+  - Single optimization that decides which parts stay high‑precision, including KV cache, based on measured PPL impact. [arxiv](https://arxiv.org/html/2411.02530v1)
+- **Runtime designed for VRAM‑independent deployment**:
+  - All quantization and layout choices optimized for host‑RAM storage + streaming to a small compute accelerator (or CPU‑only).
+- **Automatic profiling‑driven allocation**:
+  - Data‑driven sensitivity analysis that maps local quantization choices to global perplexity impact on a calibration set.
+
+Even though the components (GPTQ, AWQ, KV‑cache quantization) exist, this particular combination—error‑budgeted, global, variable bit allocation explicitly targeting “full host RAM, no VRAM residency”—is novel enough to be interesting if you push it through experiments on Qwen 35B and maybe one more family (e.g. Llama 3.1 70B). [jarvislabs](https://jarvislabs.ai/blog/vllm-quantization-complete-guide-benchmarks)
+
+***
+
+If you want, next step I can help you design:
+
+- A concrete module naming and JSON profile format for the quantization plan.
+- A minimal PyTorch prototype for one block (attention + MLP) with variable bit‑widths that you can clone across layers.
+- Or a step‑by‑step experiment plan: which ablations to run first, and which metrics to log.
+
+To tailor this properly: what is your target runtime stack for the first prototype—PyTorch on CPU, llama.cpp fork, or something custom in Rust/C++?

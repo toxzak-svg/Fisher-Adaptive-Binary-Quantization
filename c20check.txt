@@ -1,0 +1,48 @@
+BS_CANDIDATES = [64, 128, 256, 512]
+# Penalty for smaller blocks to encourage compression efficiency
+BS_PENALTIES = {64: 1.1, 128: 1.0, 256: 0.9, 512: 0.85}
+
+def blocksize_recon_error(weights, blocksize, fisher_channels):
+    out_c, in_c = weights.shape
+    total_err = 0.0
+    for start in range(0, in_c, blocksize):
+        end = min(start + blocksize, in_c)
+        block = weights[:, start:end]
+        scale = block.std() + 1e-8
+        block_q = np.where(block > 0, 1.0, -1.0) * scale
+        recon_err = ((block - block_q) ** 2).mean()
+        block_fisher = fisher_channels[start:end].mean().item()
+        total_err += block_fisher * recon_err
+
+    # Apply bit-efficiency penalty
+    return total_err * BS_PENALTIES.get(blocksize, 1.0)
+
+def select_best_blocksize(weights, fisher_channels, candidates=BS_CANDIDATES):
+    best_b, best_err = candidates[0], float('inf')
+    for b in candidates:
+        err = blocksize_recon_error(weights, b, fisher_channels)
+        if err < best_err:
+            best_err = err
+            best_b = b
+    return best_b, best_err
+
+print("ፃ Selecting optimal per-layer blocksize with Bit-Efficiency Penalty...")
+blocksize_results = {}
+for name, module in tqdm(model.named_modules(), desc="Adaptive sweep"):
+    if 'gate' in name.lower() or 'router' in name.lower():
+        continue
+    if not isinstance(module, nn.Linear) or not hasattr(module, 'weight'):
+        continue
+    weights = module.weight.data.float().cpu().numpy()
+    if name in fisher_scores:
+        fisher = fisher_scores[name].float().cpu().numpy()
+    else:
+        fisher = np.ones(module.out_features)
+    best_b, _ = select_best_blocksize(weights, fisher)
+    blocksize_results[name] = best_b
+print(f"✅ Sweep complete for {len(blocksize_results)} layers.")
+
+bs_counts = pd.Series(list(blocksize_results.values())).value_counts().sort_index()
+print(f"\nለ Updated Blocksize distribution:")
+for bs, count in bs_counts.items():
+    print(f"   blocksize {bs:3d}: {count:3d} layers")

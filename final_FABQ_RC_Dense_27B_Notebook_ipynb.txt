@@ -1,0 +1,52 @@
+=== FABQ-RC-Dense-27B-Notebook.ipynb: 51 cells ===
+  0: markdown | # FABQ-RC: Fisher-Adaptive Binary Quantization with Residual Codebooks
+  1: markdown | <a id="1"></a>
+  2: code | # Core dependencies
+  3: markdown | ---
+  4: markdown | <a id="2"></a>
+  5: markdown | <a id="3"></a>
+  6: code | # Quantizing Qwen3.6-27B
+  7: markdown | ### 3.1b Scaling to 27B Model
+  8: code | import os, torch, gc
+  9: code | from datasets import load_dataset
+  10: markdown | ### 3.2 Stage 1 — Fisher-Weighted Channel Importance
+  11: code | class FisherAccumulator:
+  12: code | import torch
+  13: code | # ========================================
+  14: code | class DynamicResidualCodebook(nn.Module):
+  15: code | import matplotlib.pyplot as plt
+  16: markdown | ### 3.3 Stage 2 — Mixed-Precision Core Allocation
+  17: code | INT4_FRACTION = 0.05  # Keep top 5% Fisher channels as int4
+  18: markdown | ### 3.4 Stage 3 — Adaptive Blocksize Selection
+  19: code | BS_CANDIDATES = [64, 128, 256, 512]
+  20: code | # Visualize blocksize distribution
+  21: markdown | ### 3.5 Stage 4 — Residual Codebook
+  22: code | def build_codebook(model, allocation, blocksize_results, cal_loader, d
+  23: code | print("🎨 Generating residual codebook (this may take a minute)...\n")
+  24: markdown | ### 3.6 Full FABQ-RC Quantization
+  25: code | # The original quantize_fabq_rc function and its call are no longer ne
+  26: code | import bitsandbytes as bnb
+  27: code | print("\n🚀 Starting FABQ-RC Quantization...")
+  28: markdown | ### Loading the Quantized Model
+  29: markdown | ### Workaround for Download Hanging
+  30: code | # from huggingface_hub import HfApi, create_repo
+  31: markdown | ### 3.7 Verify Dynamic Temperature Scaling & Memory Footprint
+  32: markdown | ### Memory-Optimized Model Re-instantiation
+  33: code | import gc
+  34: code | from transformers import AutoConfig
+  35: code | import torch
+  36: code | import torch
+  37: code | # Final Quality Validation
+  38: code | import gc
+  39: code | from transformers import AutoTokenizer
+  40: code | if 'quantized_layers_metadata' not in globals():
+  41: markdown | <a id="4"></a>
+  42: code | import gc
+  43: code | import gc
+  44: markdown | <a id="5"></a>
+  45: code | import matplotlib.pyplot as plt
+  46: markdown | ### 5.1 Precision Distribution across Model Depth
+  47: code | import matplotlib.patches as mpatches
+  48: markdown | ### Key Results Summary
+  49: markdown | The `model` object now contains the FABQ-RC quantized layers, ready fo
+  50: markdown | ---

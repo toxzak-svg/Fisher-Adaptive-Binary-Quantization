@@ -1,0 +1,3 @@
+### 3.2 Stage 1 — Fisher-Weighted Channel Importance
+
+We hook into every `nn.Linear` layer, run forward+backward on calibration data, and accumulate gradient² per output channel.
