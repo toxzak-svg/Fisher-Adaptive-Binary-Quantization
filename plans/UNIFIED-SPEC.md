@@ -1,7 +1,7 @@
 # Unified Quantization Architecture: FABQ-RC + EBQ
 
-**Date:** 2026-05-04  
-**Status:** Draft  
+**Date:** 2026-05-04
+**Status:** Planned
 **Purpose:** Tie together FABQ-VP and EBQ into a coherent research agenda
 
 ---

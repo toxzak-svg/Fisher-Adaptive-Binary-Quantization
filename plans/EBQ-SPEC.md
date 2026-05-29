@@ -1,8 +1,14 @@
 # EBQ: Error-Budget Quantization
 
-**Date:** 2026-05-04  
-**Status:** Draft  
+**Date:** 2026-05-04
+**Status:** Planned
 **Goal:** Global perplexity-constrained bit allocation for RAM-only LLM inference
+
+---
+
+## Problem Statement
+
+All existing quantization methods use **local** decisions. EBQ treats the entire model as a single optimization problem under a perplexity budget.
 
 ---
 

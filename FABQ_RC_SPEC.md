@@ -1,7 +1,7 @@
 # FABQ-RC: Fisher-Adaptive Binary Quantization with Residual Codebooks
 
 **Date:** 2026-04-05
-**Status:** Draft v2 (bpw math corrected)
+**Status:** Active
 **Author:** Zach Maronek + Marble
 
 ---
@@ -10,7 +10,7 @@
 
 All existing 1-bit quantization methods use a fixed or semi-fixed blocksize across all layers. This is the wrong compromise. Weight distributions vary dramatically across layers — some layers are homogeneous (big blocks work fine), others are heterogeneous (need fine granularity). A single blocksize for all layers sacrifices quality everywhere.
 
-**Goal:** Beat Q1_0_g128 (Bonsai's 1-bit format) and BiLLM on quality while staying at ~1.15-1.25 bits per parameter (corrected target range).
+**Goal:** Beat Q1_0_g128 (Bonsai's 1-bit format) and BiLLM on quality while staying at ~1.15-1.25 bits per parameter.
 
 ---
 
@@ -32,7 +32,6 @@ Stage 2: Mixed-Precision Core Allocation
     ▼
 Stage 3: Adaptive Blocksize Selection
     │  Per-layer blocksize sweep {64, 128, 256, 512}
-    │  (16, 32 dropped — small blocks inflate scale overhead)
     │  Pick blocksize minimizing Fisher-weighted reconstruction error
     ▼
 Stage 4: Residual Codebook Clustering
@@ -43,17 +42,7 @@ Stage 4: Residual Codebook Clustering
 FABQ-RC Quantized Model
 ```
 
-**Effective bits per weight (corrected):** ~1.21 bpw
-
-| Component | Original (flawed) | Corrected |
-|-----------|-------------------|-----------|
-| int4 channels (5%) | 0.40 (int8) | 0.20 |
-| Binary channels (95%) | 0.95 | 0.95 |
-| Scale factors | 0.02–0.12 (variable) | ~0.03 (min bs=64) |
-| Codebook indices | 0.06 (256 global) | 0.03 (4-bit tiered) |
-| **Total** | **~1.38–1.53** | **~1.21** |
-
-The original spec claimed "~1.38 bpw at 5% int8 → 1.20 at 2% int8" but the codebook overhead compounds per block (uint8 index per 128 weights = 0.0625 bits/weight), which was treated as negligible but isn't. With the fixes below, we genuinely reach ~1.21 bpw.
+**Effective bits per weight:** ~1.21 bpw
 
 ---
 
@@ -61,7 +50,10 @@ The original spec claimed "~1.38 bpw at 5% int8 → 1.20 at 2% int8" but the cod
 
 ### Why Fisher over Hessian/Magnitude?
 
-Weight magnitude tells you how big a weight is. Hessian tells you how much the loss changes when the weight changes. Fisher information tells you *on average* how much the loss changes — averaged over the data distribution.
+Hessian = second derivative (curvature) — tells you loss curvature at the current point.
+Fisher Information = expected gradient² — tells you, averaged over the data distribution, how much each parameter matters for the loss.
+
+Fisher is more directly tied to the loss impact of quantizing a channel. We use it as the importance metric for channel allocation.
 
 ```python
 # For a weight w_i, Fisher information:
@@ -71,12 +63,6 @@ Weight magnitude tells you how big a weight is. Hessian tells you how much the l
 # F_i ≈ (1/N) Σ_n (∂L_n / ∂ w_i)²
 #
 # where gradients are from a calibration dataset
-
-# Practical approximation: use activations as proxy
-# For output channel j in layer l:
-# F_j = (1/|C_j|) Σ_{k∈C_j} E[∂L/∂w_k]²
-#      ≈ (1/|C_j|) Σ_{k∈C_j} (â_k · ĥ_k)²
-# where â_k is the gradient w.r.t. activation and ĥ_k is the activation
 ```
 
 ### Algorithm
@@ -91,13 +77,10 @@ def compute_fisher_importance(model, calibration_loader, device):
     model.eval()
     fisher = {}
 
-    # Accumulate gradients squared per channel
     for name, module in model.named_modules():
         if isinstance(module, (nn.Linear, nn.Conv2d)):
-            # Hook to capture gradients during backprop on calibration data
             module._fisher_grad = torch.zeros_like(module.weight)
 
-    # Run forward + backward on calibration data
     for batch in calibration_loader:
         input_ids = batch['input_ids'].to(device)
         labels = batch['labels'].to(device)
@@ -106,40 +89,23 @@ def compute_fisher_importance(model, calibration_loader, device):
         loss = F.cross_entropy(outputs.view(-1, outputs.size(-1)), labels.view(-1))
         loss.backward()
 
-        # Accumulate gradient² per output channel
         for name, module in model.named_modules():
             if isinstance(module, (nn.Linear, nn.Conv2d)):
                 if module.weight.grad is not None:
-                    # Sum over input dimension to get per-output-channel Fisher
                     if module.weight.grad.dim() == 2:
                         grad_sq = module.weight.grad.data ** 2
-                        # Per output channel: sum over input dim
-                        channel_fisher = grad_sq.sum(dim=1)  # (out_channels,)
+                        channel_fisher = grad_sq.sum(dim=1)
                     else:
-                        channel_fisher = grad_sq.sum(dim=(1, 2, 3))  # conv
+                        channel_fisher = grad_sq.sum(dim=(1, 2, 3))
                     module._fisher_grad += channel_fisher
 
         model.zero_grad()
 
-    # Normalize
     for name, module in model.named_modules():
         if hasattr(module, '_fisher_grad'):
             fisher[name] = module._fisher_grad / len(calibration_loader)
 
     return fisher
-```
-
-### Channel Sorting
-
-```python
-def sort_channels_by_fisher(fisher, layer_name, module):
-    """
-    Sort output channels by Fisher importance (descending).
-    Returns: list of (channel_idx, fisher_score) sorted by importance
-    """
-    f = fisher[layer_name]
-    order = torch.argsort(f, descending=True)
-    return [(int(idx), float(f[idx])) for idx in order]
 ```
 
 ---
@@ -152,7 +118,7 @@ Most channels in a linear layer have low Fisher importance — their weights cou
 
 We preserve only the most critical channels at int4. Everything else is binary.
 
-**Why int4 instead of int8?** Going from int8 → int4 on the top 5% saves half those bits: `0.40 → 0.20`. At 5% of channels, quality degradation from int8→int4 is minimal because Fisher already identified these as the most important — they're dense and well-distributed. This single change gets us from ~1.38 bpw to ~1.18 bpw.
+**Why int4 instead of int8?** Going from int8 → int4 on the top 5% saves half those bits: `0.40 → 0.20`. At 5% of channels, quality degradation from int8→int4 is minimal because Fisher already identified these as the most important — they're dense and well-distributed.
 
 ### Algorithm
 
@@ -176,23 +142,6 @@ def allocate_precision(fisher_scores, int4_fraction=0.05):
     return allocation
 ```
 
-### Mixed-Precision Weight Representation
-
-```python
-# For a linear layer with shape (out_channels, in_channels):
-#
-# int4 channels: store as int4 + per-channel FP16 scale
-# binary channels: store as bit vector + per-block FP16 scale
-#
-# Layout in memory:
-# ┌─────────────────────────────────────────────────────────────┐
-# │ int4_weights[ni, ki]  │  binary_weights_bitvec[nb]         │
-# │ int4_scales[ni]        │  binary_block_scales[nb_blocks]     │
-# │ channel_allocation[out_channels]  (1=int4, 0=binary)       │
-# │ int4_channel_indices[ni]                                  │
-# └─────────────────────────────────────────────────────────────┘
-```
-
 ---
 
 ## Stage 3: Adaptive Blocksize Selection
@@ -205,38 +154,25 @@ Rather than pick one blocksize for the whole model, we pick the best blocksize *
 
 ### Block Size Candidates
 
-`B = {64, 128, 256, 512}` — **16 and 32 dropped**
+`B = {64, 128, 256, 512}` — 16 and 32 dropped due to scale overhead.
 
-Why drop 16 and 32? Small blocksizes dramatically inflate the number of scale values stored. A blocksize-16 layer with 4096 output channels stores 256 scales per output channel vs. 32 for blocksize-128. Since scales are FP16, this isn't "0.02 bits" anymore — at blocksize 16 it's closer to 0.125 bits/weight. Enforcing a minimum blocksize of 64 recovers ~0.05–0.10 bpw.
-
-For each layer, for each candidate blocksize `b ∈ B`:
-1. Partition weights into blocks of size `b` (last block may be smaller)
-2. For each block, compute the quantization error weighted by Fisher importance of channels in that block
-3. Sum weighted errors across all blocks
-4. Pick `b` minimizing the weighted sum
+### Algorithm
 
 ```python
 def compute_reconstruction_error(weights, block_size, fisher_channels):
-    """
-    weights: (out_channels, in_channels)
-    fisher_channels: (out_channels,) — Fisher importance per output channel
-    """
     out_c, in_c = weights.shape
     errors = []
 
     for block_start in range(0, in_c, block_size):
         block_end = min(block_start + block_size, in_c)
-        block_w = weights[:, block_start:block_end]  # (out_c, block_size)
+        block_w = weights[:, block_start:block_end]
 
-        # Fisher-weighted block importance
-        block_fisher = fisher_channels.mean()  # average over the block's output channels
+        block_fisher = fisher_channels.mean()
 
-        # Quantize block to ±1
         scale = block_w.abs().mean() + 1e-8
-        block_q = (block_w > 0).float() * 2 - 1  # ±1
+        block_q = (block_w > 0).float() * 2 - 1
         block_recon = block_q * scale
 
-        # Reconstruction error
         recon_error = ((block_w - block_recon) ** 2).mean()
         weighted_error = block_fisher * recon_error
         errors.append(weighted_error)
@@ -269,9 +205,9 @@ This is fundamentally different from BiLLM's "binary residual approximation," wh
 
 ### Architectural Fix: Tiered Codebooks + 4-bit Indices
 
-**Problem with original design:** Sharing a 256-centroid codebook across layers with very different Fisher profiles wastes most centroids. A single global codebook can't cover residual variance well across all layers.
+**Problem with global codebook:** Sharing a 256-centroid codebook across layers with very different Fisher profiles wastes most centroids.
 
-**Fix:** Use **4 separate codebooks of 64 centroids each**, tiered by Fisher magnitude quartile. Same total storage (4 × 64 × 4 bytes = 8KB per blocksize), but much better residual coverage where it counts because residuals within a Fisher tier have tighter structure.
+**Fix:** Use **4 separate codebooks of 64 centroids each**, tiered by Fisher magnitude quartile. Same total storage (4 × 64 × 4 bytes = 8KB per blocksize), but much better residual coverage where it counts.
 
 Additionally, use **4-bit indices** (16 centroids per layer cluster) instead of uint8 indices. This halves codebook overhead from 0.0625 bits/weight to ~0.03 bits/weight.
 
@@ -297,65 +233,16 @@ def build_tiered_codebooks(residual_blocks_by_fisher_quartile, n_clusters=64, se
             codebooks[quartile] = np.zeros((n_clusters, blocks[0].shape[1]), dtype=np.float32)
             continue
 
-        # Flatten blocks for k-means
-        flat = np.array([b.flatten() for b in blocks])  # (n_blocks, block_size)
+        flat = np.array([b.flatten() for b in blocks])
         flat = flat.astype(np.float32)
 
-        # Cluster residual patterns
         kmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=seed, batch_size=1024)
         labels = kmeans.fit_predict(flat)
-        centroids = kmeans.cluster_centers_  # (n_clusters, block_size)
+        centroids = kmeans.cluster_centers_
 
         codebooks[quartile] = centroids
 
     return codebooks
-
-
-def apply_residual_correction(weights, block_size, codebook, n_centroids=16):
-    """
-    Quantize weights + apply residual codebook correction.
-    Uses 4-bit indices (n_centroids=16 per layer cluster).
-
-    Returns: (quantized_weights, scale, codebook_indices)
-    """
-    out_c, in_c = weights.shape
-    quantized = np.zeros_like(weights)
-    indices = []
-
-    for block_start in range(0, in_c, block_size):
-        block_end = min(block_start + block_size, in_c)
-        block_w = weights[:, block_start:block_end]
-
-        # Binary quantization
-        scale = block_w.std() + 1e-8
-        block_q = np.where(block_w > 0, 1.0, -1.0)
-
-        # Find nearest residual centroid (among 16 active centroids)
-        residual = block_w - block_q * scale  # (out_c, block_size)
-        res_flat = residual.flatten().reshape(1, -1)
-        centroid_idx = ((codebook[:n_centroids] - res_flat) ** 2).sum(axis=1).argmin()
-
-        # Apply correction
-        corrected = block_q * scale + codebook[centroid_idx]
-        quantized[:, block_start:block_end] = corrected
-        indices.append(centroid_idx)
-
-    return quantized, indices
-```
-
-### Memory Layout
-
-```
-Per layer:
-  - binary_weights_bitvec[nb_blocks, block_size]  → 1 bit/weight
-  - binary_block_scales[nb_blocks]                 → FP16
-  - codebook_indices[nb_blocks]                    → 4 bits/index (16 centroids)
-  - int4_channel_mask[out_channels]                 → 1 bit/channel
-  - int4_scales[ni]                                → FP16
-  - int4_weights[ni, ki]                           → 4 bits/weight
-
-Per model:
-  - 4 tiered codebooks × 64 centroids × blocksize × 4 bytes
 ```
 
 ---
@@ -369,14 +256,7 @@ def quantize_fabq_rc(model, calibration_loader, device,
                      codebook_n_clusters=64):
     """
     Full FABQ-RC quantization pipeline.
-
-    Returns: dict of {layer_name: QuantizedLayer} with:
-        - int4_weights, int4_scales, int4_channel_indices
-        - binary_weights_bitvec, binary_block_scales, binary_blocksize
-        - codebook (tiered), codebook_indices
-        - allocation (per-channel precision assignment)
     """
-    # Stage 1: Fisher importance
     fisher = compute_fisher_importance(model, calibration_loader, device)
 
     quantized_layers = {}
@@ -388,30 +268,23 @@ def quantize_fabq_rc(model, calibration_loader, device,
         weights = module.weight.data.cpu().numpy()
         out_c, in_c = weights.shape
 
-        # Get Fisher scores for output channels
         f_scores = fisher.get(name, torch.ones(out_c))
         if isinstance(f_scores, torch.Tensor):
             f_scores = f_scores.cpu().numpy()
 
-        # Sort channels by Fisher importance
         sorted_channels = sorted(enumerate(f_scores), key=lambda x: x[1], reverse=True)
 
-        # Stage 2: Allocate precision
         allocation = allocate_precision(sorted_channels, int4_fraction)
 
-        # Stage 3: Select blocksize for binary channels
         binary_channels = [i for i, a in allocation.items() if a == 'binary']
         int4_channels = [i for i, a in allocation.items() if a == 'int4']
 
         if binary_channels:
-            binary_weights = weights[binary_channels, :]  # (nb, in_c)
+            binary_weights = weights[binary_channels, :]
             binary_fisher = f_scores[binary_channels]
             best_bs = select_best_blocksize(binary_weights, binary_fisher, blocksize_candidates)
         else:
-            best_bs = 128  # fallback
-
-        # Stage 4: Build residual codebook and quantize
-        # ... (full implementation in notebook)
+            best_bs = 128
 
         quantized_layers[name] = QuantizedLayer(...)
 
@@ -420,11 +293,9 @@ def quantize_fabq_rc(model, calibration_loader, device,
 
 ---
 
-## Evaluation Strategy
+## Evaluation
 
-### Perplexity (Primary Metric)
-
-Evaluate on held-out text (WikiText-2, C4, or Pile subset).
+### Perplexity
 
 ```python
 def evaluate_perplexity(model, test_data, stride=512):
@@ -456,27 +327,14 @@ def evaluate_perplexity(model, test_data, stride=512):
 | Word-in-Context | WiC | Accuracy |
 | Natural Questions | NQ | EM |
 
-### Baselines to Compare
-
-| Method | Description |
-|--------|------------|
-| **FP16** | Full precision baseline |
-| **Q1_0_g128** | llama.cpp Q1_0_g128 format (Bonsai's approach) |
-| **BiLLM** | Hessian-based 1-bit PTQ (if open-source code available) |
-| **FABQ-RC (ours)** | Fisher-adaptive with residual codebook |
-
----
-
-## Expected Results
-
-Based on corrected analysis:
+### Expected Results
 
 | Method | bpw | Perplexity (7B) | Est. Quality Gap |
 |--------|-----|-----------------|------------------|
 | FP16 | 16.0 | baseline | — |
 | Q1_0_g128 | 1.125 | poor | large |
 | BiLLM | 1.08 | 8.41 (70B) | small |
-| **FABQ-RC (target)** | ~1.21 | < 8.0 | smallest |
+| **FABQ-RC** | ~1.21 | target < 8.0 | smallest |
 
 FABQ-RC should beat BiLLM because:
 1. **Adaptive blocksize** recovers more per-layer quality than fixed blocksize
@@ -494,7 +352,7 @@ FABQ-RC should beat BiLLM because:
 - **4-bit indices** per block (16 active centroids per layer cluster) — not uint8
 - Memory overhead: codebook (4 × 64 × 128 × 4 bytes = 128KB) is negligible
 
-## Out of Scope for v1
+## Out of Scope For v1
 
 - Activation quantization (weight-only for now)
 - Hardware-aware blocksize (GPU memory coalescing)
@@ -503,10 +361,18 @@ FABQ-RC should beat BiLLM because:
 
 ---
 
-## Changelog (v1 → v2)
+## Changelog
+
+### v1 → v2
 
 1. **int8 → int4 for top 5% channels**: saves 0.20 bits/weight
 2. **Dropped blocksize 16, 32**: minimum blocksize 64 to avoid scale overhead inflation
 3. **Single global codebook → 4 tiered codebooks (64 centroids each)**: better residual coverage per Fisher tier
 4. **uint8 indices → 4-bit indices**: 16 centroids per layer cluster, halves codebook overhead
-5. **Corrected bpw math**: Total now ~1.21 bpw (was incorrectly claimed as ~1.38 with optimistic int8 accounting)
+5. **Corrected bpw math**: Total now ~1.21 bpw
+
+---
+
+## License
+
+Apache 2.0

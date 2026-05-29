@@ -1,12 +1,20 @@
 # FABQ-RC + Variable Precision Research Plan
 
-**Date:** 2026-05-04  
-**Last Updated:** 2026-05-04  
-**Status:** Planning Draft
+**Date:** 2026-05-04
+**Last Updated:** 2026-05-28
+**Status:** Active
 
 ---
 
 ## Executive Summary
+
+FABQ-RC is a working 1-bit quantization method with:
+- Fisher-weighted channel importance
+- Adaptive per-layer blocksize selection
+- Residual codebook for bias correction
+- GGUF export for inference
+
+FABQ-VP and EBQ are planned extensions.
 
 This plan covers two complementary research directions building on FABQ-RC:
 

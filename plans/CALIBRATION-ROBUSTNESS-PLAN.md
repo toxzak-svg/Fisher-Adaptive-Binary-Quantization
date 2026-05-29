@@ -1,28 +1,18 @@
 # Calibration Robustness & Downstream Flexibility Plan
 
 **Date:** 2026-05-16
-**Status:** Draft
+**Status:** In Progress
 **Concerns Address:** Fisher calibration narrowness, context shape mismatch, downstream flexibility with adapters
 
 ---
 
 ## 0. Executive Summary
 
-FABQ-RC's core vulnerability is that **Fisher importance is only as good as the calibration distribution**. If calibration data is narrow, "low Fisher" may mean "not activated by this eval format" rather than "safe to binarize." This plan addresses that risk through multi-domain scoring, context-shape profiling, fragility detection, and downstream flexibility analysis.
-
-The goal is not to replace FABQ-RC, but to **harden its calibration pipeline** so precision decisions are robust across distributions and downstream use cases.
+FABQ-RC's core vulnerability is that **Fisher importance is only as good as the calibration distribution**. If calibration data is narrow, "low Fisher" may mean "not activated by this eval format" rather than "safe to binarize."
 
 ---
 
-## 1. Multi-Domain Fisher Scoring (Primary Fix)
-
-### 1.1 Problem
-
-Current Fisher accumulation (`FABQ-RC-Phase0-Validation.ipynb:185-240`) uses 256 samples from C4 at seq_len=128. This single-domain, single-length calibration can miss channels that are only important for:
-- Code/math reasoning
-- Rare factual knowledge
-- Long-range dependencies
-- Formatting/special token behavior
+## 1. Multi-Domain Fisher Scoring (Never Implemented)
 
 ### 1.2 Stratified Calibration Set
 

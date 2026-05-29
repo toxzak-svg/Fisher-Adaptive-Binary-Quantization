@@ -1,9 +1,15 @@
 # FABQ-VP: Variable Precision Extension for FABQ-RC
 
-**Date:** 2026-05-04  
-**Status:** Draft  
-**Parent:** FABQ_RC_SPEC.md  
+**Date:** 2026-05-04
+**Status:** Planned
+**Parent:** FABQ_RC_SPEC.md
 **Goal:** Extend FABQ-RC's adaptive precision concepts from 1-bit to 2-8 bits per parameter
+
+---
+
+## Motivation
+
+FABQ-RC proves that adaptive per-layer precision allocation beats fixed blocksize. FABQ-VP generalizes this to variable precision across a continuous range [1, 8] bits.
 
 ---
 

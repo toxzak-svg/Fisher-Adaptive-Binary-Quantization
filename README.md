@@ -1,86 +1,105 @@
 # FABQ-RC: Fisher-Adaptive Binary Quantization with Residual Codebooks
 
-**Method + Kaggle benchmark notebook**
+## A Vigorous Scientific Research Experiment
+
+**Status:** Active
+**Duration:** April 2026 - Present
 
 ---
 
-## What Is This?
+## What Is FABQ-RC?
 
-FABQ-RC is a new 1-bit quantization method for large language models that adapts per layer rather than using a fixed blocksize. It was designed to beat Q1_0_g128 (Bonsai's format) and BiLLM on quality while staying at ~1.15-1.20 bits per parameter.
+FABQ-RC is a 1-bit quantization method for large language models that adapts per layer rather than using a fixed blocksize. It combines:
+
+1. **Fisher-Weighted Channel Importance** — Which channels actually matter for loss?
+2. **Mixed-Precision Core Allocation** — int8 for critical channels, binary for the rest
+3. **Adaptive Blocksize** — Per-layer blocksize selection, not global
+4. **Residual Codebook** — k-means corrects systematic binary bias
+
+**Target:** ~1.18 bits per parameter, beating BiLLM on quality
 
 ---
 
-## Files
+## The Method
+
+### Why Fisher > Hessian > Magnitude
+
+| Metric | What it measures | Problem |
+|--------|-----------------|---------|
+| **Magnitude** | Weight absolute value | Big weights aren't always important |
+| **Hessian** | Loss curvature at current θ | Local only, expensive to compute |
+| **Fisher** | Expected gradient² over data | Captures average importance, tractable |
+
+### Four Stages
 
 ```
-fabq-rc/
-├── FABQ_RC_SPEC.md                        ← Full method specification
-├── FABQ_RC.ipynb                          ← Standalone experiments notebook
-├── FABQ_RC_Kaggle.ipynb                   ← Original Kaggle notebook
-├── FABQ-RC-real-eval.ipynb                ← End-to-end eval + Rust export
-└── README.md                              ← This file
+FP32 Weights
+    │
+    ▼
+Stage 1: Fisher-Weighted Channel Importance
+    │
+Stage 2: Mixed-Precision Core Allocation
+    │  Top 5% channels → int4
+    │  Bottom 95% channels → binary ±1
+    ▼
+Stage 3: Adaptive Blocksize Selection
+    │  Per-layer blocksize {64, 128, 256, 512}
+    ▼
+Stage 4: Residual Codebook Clustering
+    │  4 tiered codebooks × 64 centroids
+    │  4-bit indices per block
+    ▼
+FABQ-RC Quantized Model
+    │
+    ▼
+GGUF Export
 ```
-
-## Kaggle Notebooks
-
-- **FABQ-RC Real Eval** (main working notebook): https://www.kaggle.com/code/zacharymaronek/fabq-rc-real-evaluation-rust-deployment
-- **FABQ-RC**: https://www.kaggle.com/code/zacharymaronek/fabq-rc
-
-
-
-```
-## Key Ideas
-
-### The Problem with Fixed Blocksize
-
-All existing 1-bit methods (Q1_0_g128, BiLLM) use the same blocksize for every layer. But weight distributions vary — a layer with uniform weights can tolerate 256-wide blocks, while a heterogeneous layer needs 16-wide blocks to preserve important combinations. A single blocksize is always the wrong compromise for some layers.
-
-### FABQ-RC's Four Stages
-
-1. **Fisher-Weighted Channel Importance** — Instead of magnitude or Hessian, use Fisher Information per output channel to determine which weights actually matter for the loss
-2. **Mixed-Precision Core** — Top 5% of channels by Fisher → int8 (accurate). Remaining 95% → binary ±1 (compact)
-3. **Adaptive Blocksize** — Sweep {16, 32, 64, 128, 256} per layer, pick the one minimizing Fisher-weighted reconstruction error
-4. **Residual Codebook** — After binary quantization, cluster the systematic residual errors into a k-means codebook (256 centroids). During inference, add the centroid back. This corrects the systematic bias that binary quantization introduces.
-
-### Why Fisher > Hessian
-
-Hessian = second derivative (curvature) — tells you loss curvature at the current point.
-Fisher Information = expected gradient² — tells you, averaged over the data distribution, how much each parameter matters.
-
-Fisher is more directly tied to the loss impact of quantizing a channel. We use it as the importance metric for channel allocation.
 
 ### Why Residual Codebook > Linear Approximation
 
-BiLLM approximates the residual as a linear function of the weight value. This misses nonlinear systematic errors. FABQ-RC's k-means codebook captures arbitrary residual patterns, which is more expressive and doesn't assume a functional form.
+BiLLM approximates residuals as a linear function of the weight value. FABQ-RC's k-means codebook is nonlinear and captures arbitrary residual patterns without assuming a functional form.
 
 ---
 
-## Running the Notebook on Kaggle
+## Quick Start
 
-1. Upload `FABQ_RC.ipynb` to Kaggle
-2. Add input dataset: `TinyLlama/TinyLlama-1.1B-Chat-v1.0` (or let it auto-download)
-3. Set accelerator: **GPU P100**
-4. Set internet: **On**
-5. Run all cells
+### Download the Model
 
-**Runtime:** ~30-45 min on P100
+```python
+from huggingface_hub import snapshot_download
+
+model_path = snapshot_download("toxzak/Qwen3.6-27B-FABQ-RC-GGUF")
+```
+
+### Use with llama.cpp
+
+```bash
+# Example inference command
+./llama-cli -m Qwen3.6-27B-FABQ-RC-Q4_K_M.gguf -n 256 -p "The future of 1-bit quantization is"
+```
+
+### Evaluate
+
+```python
+# Perplexity on WikiText-2
+./llama-perplexity -m Qwen3.6-27B-FABQ-RC-Q4_K_M.gguf -f wikitext.txt
+```
 
 ---
 
-## Quick Method Reference
+## Model Details
 
-| Stage | What it does |
-|-------|-------------|
-| Fisher importance | Per-channel importance scores via gradient² proxy |
-| Precision allocation | Top 5% channels → int8, rest → binary |
-| Adaptive blocksize | Per-layer blocksize selection by reconstruction error |
-| Residual codebook | k-means on quantization residuals, 256 centroids, shared across layers |
-
-**Effective bits:** ~1.15-1.20 bpw (vs Q1_0_g128's 1.125 bpw at equal or better quality)
+| Property | Value |
+|----------|-------|
+| **Base Model** | Qwen/Qwen3.6-27B |
+| **Format** | GGUF |
+| **Bits per parameter** | ~1.18 bpw |
+| **Architecture** | FABQ-RC (Fisher-Adaptive Binary Quantization with Residual Codebooks) |
+| **Calibration** | C4 dataset, 2048 samples |
 
 ---
 
-## Expected Results
+## Key Results
 
 | Method | bpw | Perplexity | Notes |
 |--------|-----|------------|-------|
@@ -91,6 +110,37 @@ BiLLM approximates the residual as a linear function of the weight value. This m
 
 ---
 
-## Method Origin
+## Files
 
-Designed by Zach Maronek, 2026-04-05. The core insight — that per-layer adaptive blocksize is the biggest untapped lever in 1-bit quantization — came from analyzing why Q1_0_g128 degrades badly on large models and why BiLLM's fixed blocksize still leaves quality on the table.
+```
+fabq-rc/
+├── README.md                              ← This file
+├── FABQ_RC_SPEC.md                       ← Full method specification
+├── FABQRC_PLAN.md                        ← Research plan
+├── Main-FABQ-RC-Notebook.ipynb          ← Main quantization notebook
+├── FABQ-RC-Dense-27B-Notebook.ipynb     ← Dense model experiments
+└── plans/
+    ├── CALIBRATION-ROBUSTNESS-PLAN.md  ← Calibration improvements
+    ├── FABQ-VP-SPEC.md                  ← Variable precision extension
+    ├── EBQ-SPEC.md                      ← Error-budget allocation
+    └── UNIFIED-SPEC.md                   ← Combined architecture
+```
+
+---
+
+## Citation
+
+```
+FABQ-RC: Fisher-Adaptive Binary Quantization with Residual Codebooks
+Zach Maronek, 2026
+```
+
+---
+
+## License
+
+Apache 2.0 (see Hugging Face model page for details)
+
+---
+
+*Built by Zach Maronek · April 2026*
