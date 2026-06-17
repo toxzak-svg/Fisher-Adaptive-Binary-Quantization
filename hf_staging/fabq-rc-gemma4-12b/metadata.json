@@ -1,0 +1,22 @@
+{
+  "license": "apache-2.0",
+  "base_model": "google/gemma-4-12B-it",
+  "tags": [
+    "quantization",
+    "1-bit",
+    "fabq-rc",
+    "fisher-adaptive",
+    "gemma",
+    "native-quantized-inference",
+    "cuda-kernel",
+    "code"
+  ],
+  "pipeline_tag": "other",
+  "library_name": "fabq-rc",
+  "project": "FABQ-RC",
+  "description": "FABQ-RC quantization pipeline for Gemma 4 12B-it. Two variants: text-only quantization (notebook) and streaming + native-quantized inference (custom CUDA kernel, no FP16 weight materialization at runtime).",
+  "related_repos": [
+    "toxzak/fabq-rc",
+    "toxzak/gemma-4-12B-it-fabq-rc-bucket"
+  ]
+}

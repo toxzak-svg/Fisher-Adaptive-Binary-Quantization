@@ -1,0 +1,11 @@
+metadata:
+  license: apache-2.0
+  tags:
+    - quantization
+    - 1-bit
+    - fabq-rc
+    - fisher-adaptive
+    - research
+    - code
+  pipeline_tag: other
+  library_name: fabq-rc

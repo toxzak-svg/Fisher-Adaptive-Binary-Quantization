@@ -1,0 +1,24 @@
+{
+  "license": "apache-2.0",
+  "base_model": [
+    "google/gemma-4-12B-it",
+    "Qwen/Qwen3.6-27B",
+    "deepseek-ai/DeepSeek-V4-Flash"
+  ],
+  "tags": [
+    "quantization",
+    "1-bit",
+    "fabq-rc",
+    "fisher-adaptive",
+    "research",
+    "code"
+  ],
+  "pipeline_tag": "other",
+  "library_name": "fabq-rc",
+  "project": "FABQ-RC",
+  "description": "Parent FABQ-RC project: working notebooks (Qwen 27B, Gemma 4 12B, DeepSeek V4-Flash), plans, specs, GGUF export scripts, finetune helpers. The Gemma 4 12B variant lives in a separate repo at toxzak/fabq-rc-gemma4-12b.",
+  "related_repos": [
+    "toxzak/fabq-rc-gemma4-12b",
+    "toxzak/gemma-4-12B-it-fabq-rc-bucket"
+  ]
+}

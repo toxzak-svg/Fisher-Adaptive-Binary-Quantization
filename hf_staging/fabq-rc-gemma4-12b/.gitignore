@@ -1,0 +1,29 @@
+# FABQ-RC Gemma 4 12B - gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# CUDA extension build
+*.so
+*.cubin
+*.ptx
+*.ninja
+
+# Staging dir for HF uploads
+hf_staging/
+
+# Local config (do NOT commit your HF token)
+.env
+
+# Local model cache
+.cache/
+models/.cache/
+
+# Jupyter
+.ipynb_checkpoints/

@@ -1,0 +1,42 @@
+# FABQ-RC Gemma 4 12B — runtime requirements
+#
+# Pin versions that are known to work together on A100 80GB with CUDA 12.x.
+# These are the versions the CUDA extension was written against; the
+# notebooks will run with newer versions too, but this is the verified set.
+#
+# Install:
+#   pip install -r requirements.txt
+
+# ---- Core ML ----
+torch>=2.1,<2.4                  # CUDA 12.x wheels, includes CUDA runtime libs
+transformers>=4.42,<5.0          # AutoModelForCausalLM, AutoProcessor
+accelerate>=0.32,<1.0            # device_map="auto" support, offload
+safetensors>=0.4,<1.0            # shard loading
+huggingface_hub>=0.23,<1.0       # hf_hub_download, upload_folder
+
+# ---- Data + numerics ----
+numpy>=1.24,<2.0
+scikit-learn>=1.3,<2.0           # MiniBatchKMeans for the codebook
+pandas>=2.0,<3.0
+datasets>=2.20,<3.0
+tqdm>=4.66,<5.0
+
+# ---- Quantization helpers (CUDA extension deps) ----
+# pybind11 is only needed at build time for the CUDA extension; it ships
+# with python-build under most setups but be explicit:
+pybind11>=2.11,<3.0
+
+# ---- Optional: visualization (the notebooks use matplotlib heavily) ----
+matplotlib>=3.8,<4.0
+seaborn>=0.13,<1.0
+
+# ---- Build-time only: CUDA toolchain is not pip-installable on most
+# systems. You need:
+#   - CUDA toolkit >= 12.1 (provides nvcc)
+#   - A C++17 compiler (g++ on Linux, MSVC on Windows)
+#   - Set CUDA_HOME env var to your toolkit install dir
+#
+# Verify with:
+#   nvcc --version
+#   echo $CUDA_HOME       (Linux/Mac)
+#   echo $env:CUDA_HOME   (PowerShell)
