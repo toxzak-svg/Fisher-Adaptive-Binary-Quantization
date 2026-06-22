@@ -1,6 +1,7 @@
 # Quantized model weights
 *.pth
 quantized_*.pth
+.hf_cache/
 
 # Python
 __pycache__/

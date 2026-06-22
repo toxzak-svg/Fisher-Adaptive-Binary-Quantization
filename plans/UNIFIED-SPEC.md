@@ -1,7 +1,7 @@
 # Unified Quantization Architecture: FABQ-RC + EBQ
 
-**Date:** 2026-05-04
-**Status:** Planned
+**Date:** 2026-05-04  
+**Status:** Draft  
 **Purpose:** Tie together FABQ-VP and EBQ into a coherent research agenda
 
 ---
@@ -23,21 +23,21 @@ The message proposes extending this to a variable-precision paradigm with two co
                     ┌───────────────┴───────────────┐
                     ▼                               ▼
          ┌──────────────────┐            ┌──────────────────┐
-         │   FABQ-VP       │            │      EBQ        │
-         │ Variable Preci-  │            │  Error-Budget   │
-         │ sion Extension   │            │  Allocation     │
-         │ (extends 1-bit   │            │ (global         │
-         │  to 2-8 bits)    │            │  optimization)  │
+         │   FABQ-VP        │            │      EBQ         │
+         │ Variable Preci-  │            │  Error-Budget    │
+         │ sion Extension   │            │  Allocation      │
+         │ (extends 1-bit   │            │ (global          │
+         │  to 2-8 bits)    │            │  optimization)   │
          └──────────────────┘            └──────────────────┘
                     │                               │
                     └───────────────┬───────────────┘
                                     ▼
                     ┌─────────────────────────────────────┐
                     │    Combined System: FABQ-RC + EBQ   │
-                    │                                      │
+                    │                                     │
                     │  • FABQ-RC for binary/int2 comps    │
-                    │  • EBQ for int4/int8/FP16 comps      │
-                    │  • Unified calibration + storage     │
+                    │  • EBQ for int4/int8/FP16 comps     │
+                    │  • Unified calibration + storage    │
                     └─────────────────────────────────────┘
 ```
 
