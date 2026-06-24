@@ -77,6 +77,9 @@ class QuantizedLinear(nn.Module):
 
         # Whether to use the CUDA kernel (True) or the PyTorch reference (False)
         self._use_cuda_kernel: bool = True
+        # Whether to use the v2 kernels (vectorized + tensor-core). Falls back
+        # to v1 (scalar) if v2 isn't built into this build of the extension.
+        self._use_v2_kernel: bool = True
 
     @property
     def weight(self) -> torch.Tensor:
@@ -160,6 +163,37 @@ class QuantizedLinear(nn.Module):
         n_int4 = self.int4_channels.numel()
         n_binary = self.binary_channels.numel()
 
+        # Prefer v2 (vectorized + tensor-core) when available. v2 fuses the
+        # bias add into the GEMM (one less kernel launch per layer), which
+        # is meaningful for the per-token decode path.
+        use_v2 = (
+            self._use_v2_kernel
+            and getattr(_C, "V2_AVAILABLE", False)
+        )
+
+        if use_v2:
+            if n_int4 > 0 and n_binary == 0:
+                _C.v2_gemm_int4(
+                    x_2d, self.int4_weights, self.int4_scales,
+                    self.row_to_int4, self.bias, y,
+                )
+            elif n_int4 == 0 and n_binary > 0:
+                _C.v2_gemm_binary(
+                    x_2d, self.binary_bits, self.binary_scales, self.codebook_idx,
+                    self.codebook, self.row_to_binary, self.bias, y,
+                    self.num_blocks(), self.blocksize, self.n_clusters, self.max_blocksize,
+                )
+            else:
+                _C.v2_gemm_mixed(
+                    x_2d, self.int4_weights, self.int4_scales,
+                    self.binary_bits, self.binary_scales, self.codebook_idx,
+                    self.codebook, self.row_to_int4, self.row_to_binary,
+                    self.bias, y,
+                    self.num_blocks(), self.blocksize, self.n_clusters, self.max_blocksize,
+                )
+            return y.view(*orig_shape[:-1], self.out_features)
+
+        # v1 fallback (kept for parity testing).
         if n_int4 > 0 and n_binary == 0:
             _C.fabq_rc_gemm_int4(
                 x_2d, self.int4_weights, self.int4_scales,

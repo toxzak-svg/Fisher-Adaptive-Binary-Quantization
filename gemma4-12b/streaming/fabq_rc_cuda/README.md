@@ -34,6 +34,11 @@ Build requirements:
 - CUDA toolkit (nvcc) >= 11.8
 - C++17 compiler
 - pybind11 >= 2.10
+- NVIDIA GPU with compute capability >= 7.0 (Volta or newer). The v2
+  W4A16 tensor-core path (fp16x fp16 WMMA m16n16k16) needs SM 7.0+; the
+  scalar v2 paths work on SM 7.5+. Anything from V100 up is supported.
+  Note: this is W4A16, not native int4 TC - the activations stay fp16
+  because int4xint4 (W4A4) explodes PPL at FABQ-RC's 1.21 bpw weight quant.
 
 ## Quick test
 

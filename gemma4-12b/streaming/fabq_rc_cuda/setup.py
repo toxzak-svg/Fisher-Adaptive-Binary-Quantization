@@ -10,16 +10,23 @@ Build requirements:
 - C++17 compiler
 - pybind11 >= 2.10
 
-Tested with CUDA 12.x on A100 80GB.
+Compute capability:
+- WMMA m16n16k16 tensor-core path requires SM 7.0+ (Volta).
+- The scalar v2 paths require SM 7.5+ (Turing).
+- Default arch list covers Volta / Turing / Ampere / Ada / Hopper / Blackwell.
+- Override with the TORCH_CUDA_ARCH_LIST env var for a specific GPU.
+
+Kernels are not A100-specific - they target any NVIDIA GPU with compute
+capability >= 7.0. A100/H100/B200 benefit from the tensor-core path;
+V100/T4/RTX 30xx fall through to the vectorized scalar path automatically.
 """
 
-from setuptools import setup, Extension
 import os
+from setuptools import setup, Extension
 
 # Detect CUDA_HOME
 CUDA_HOME = os.environ.get("CUDA_HOME", "/usr/local/cuda")
 if not os.path.exists(CUDA_HOME):
-    # Try common Windows locations
     for candidate in [
         r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4",
         r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2",
@@ -31,12 +38,21 @@ if not os.path.exists(CUDA_HOME):
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
+# Default arch list. Covers Volta (7.0) -> Blackwell (10.0). The v2 tensor
+# core path uses WMMA m16n16k16 which works on all of these. If you only
+# care about one arch (faster build), set TORCH_CUDA_ARCH_LIST externally.
+if "TORCH_CUDA_ARCH_LIST" not in os.environ:
+    os.environ["TORCH_CUDA_ARCH_LIST"] = (
+        "7.0;7.5;8.0;8.6;8.9;9.0;10.0"
+    )
+
 ext = Extension(
     name="fabq_rc_cuda._C",
     sources=[
         os.path.join(this_dir, "src", "bindings.cpp"),
         os.path.join(this_dir, "src", "fabq_rc_quant.cpp"),
-        os.path.join(this_dir, "src", "fabq_rc_gemm.cu"),
+        os.path.join(this_dir, "src", "fabq_rc_gemm.cu"),       # v1: reference
+        os.path.join(this_dir, "src", "fabq_rc_gemm_v2.cu"),    # v2: production
     ],
     include_dirs=[os.path.join(this_dir, "src")],
     extra_compile_args={
@@ -54,7 +70,7 @@ ext = Extension(
 
 setup(
     name="fabq_rc_cuda",
-    version="0.1.0",
+    version="0.2.0",
     description="FABQ-RC native-quantized inference (CUDA extension)",
     ext_modules=[ext],
     cmdclass={},

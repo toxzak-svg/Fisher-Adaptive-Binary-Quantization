@@ -6,8 +6,8 @@
 
 #include "fabq_rc_format.h"
 
-// Forward declarations - the implementations live in fabq_rc_quant.cpp and
-// fabq_rc_gemm.cu
+// Forward declarations - the implementations live in fabq_rc_quant.cpp,
+// fabq_rc_gemm.cu (v1), and fabq_rc_gemm_v2.cu (v2).
 namespace fabq_rc {
 
 struct LoadedLayer {
@@ -57,6 +57,7 @@ void write_codebook_to_file(std::string path, torch::Tensor codebook);
 
 torch::Tensor read_codebook_from_file(std::string path);
 
+// v1 kernels (scalar, retained as reference / parity baseline)
 torch::Tensor fabq_rc_gemm_int4(
     torch::Tensor x, torch::Tensor int4_w, torch::Tensor int4_scales,
     torch::Tensor row_to_int4, torch::Tensor y
@@ -81,6 +82,46 @@ torch::Tensor fabq_rc_gemm_mixed(
 );
 
 void fabq_rc_add_bias(torch::Tensor y, torch::Tensor bias);
+
+// v2 kernels (vectorized + tensor-core + embedding). v2_* mirror the v1
+// signatures but add an optional bias and a v2_embed_lookup entry point.
+torch::Tensor v2_gemm_int4(
+    torch::Tensor x, torch::Tensor int4_w, torch::Tensor int4_scales,
+    torch::Tensor row_to_int4,
+    c10::optional<torch::Tensor> bias_opt,
+    torch::Tensor y
+);
+
+torch::Tensor v2_gemm_binary(
+    torch::Tensor x, torch::Tensor binary_bits,
+    torch::Tensor binary_scales, torch::Tensor codebook_idx,
+    torch::Tensor codebook, torch::Tensor row_to_binary,
+    c10::optional<torch::Tensor> bias_opt,
+    torch::Tensor y,
+    int64_t n_blocks, int64_t blocksize, int64_t n_clusters, int64_t max_blocksize
+);
+
+torch::Tensor v2_gemm_mixed(
+    torch::Tensor x,
+    torch::Tensor int4_w, torch::Tensor int4_scales,
+    torch::Tensor binary_bits, torch::Tensor binary_scales,
+    torch::Tensor codebook_idx, torch::Tensor codebook,
+    torch::Tensor row_to_int4, torch::Tensor row_to_binary,
+    c10::optional<torch::Tensor> bias_opt,
+    torch::Tensor y,
+    int64_t n_blocks, int64_t blocksize, int64_t n_clusters, int64_t max_blocksize
+);
+
+torch::Tensor v2_embed_lookup(
+    torch::Tensor token_ids,
+    torch::Tensor int4_w, torch::Tensor int4_scales,
+    torch::Tensor embed_int4_idx,
+    torch::Tensor binary_bits, torch::Tensor binary_scales,
+    torch::Tensor codebook_idx, torch::Tensor codebook,
+    torch::Tensor embed_bin_idx,
+    torch::Tensor y,
+    int64_t n_blocks, int64_t blocksize, int64_t n_clusters, int64_t max_blocksize
+);
 
 // Wrapper around read_layer_from_file that returns a pybind11::dict (since
 // LoadedLayer has c10::optional members that are awkward to return directly).
@@ -202,6 +243,80 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("fabq_rc_add_bias", &fabq_rc::fabq_rc_add_bias,
           "Add a bias vector to the output tensor in-place.",
           pybind11::arg("y"), pybind11::arg("bias"));
+
+    // ---- v2 kernels (vectorized + tensor-core + embedding) ----
+    // v2 is a drop-in faster replacement for v1. Same numerical answer
+    // within fp16 tolerance, same Python interface shape. The Python side
+    // (QuantizedLinear) prefers v2 when available.
+    m.def("v2_gemm_int4", &fabq_rc::v2_gemm_int4,
+          "v2: vectorized / tensor-core int4 GEMM. Forward pass for a "
+          "100% int4 layer. Writes output to y in-place. Bias is optional "
+          "(pass None).",
+          pybind11::arg("x"),
+          pybind11::arg("int4_w"),
+          pybind11::arg("int4_scales"),
+          pybind11::arg("row_to_int4"),
+          pybind11::arg("bias") = pybind11::none(),
+          pybind11::arg("y"));
+
+    m.def("v2_gemm_binary", &fabq_rc::v2_gemm_binary,
+          "v2: vectorized binary-only GEMM with coalesced bit access. "
+          "Forward pass for a 100% binary layer. Bias is optional.",
+          pybind11::arg("x"),
+          pybind11::arg("binary_bits"),
+          pybind11::arg("binary_scales"),
+          pybind11::arg("codebook_idx"),
+          pybind11::arg("codebook"),
+          pybind11::arg("row_to_binary"),
+          pybind11::arg("bias") = pybind11::none(),
+          pybind11::arg("y"),
+          pybind11::arg("n_blocks"),
+          pybind11::arg("blocksize"),
+          pybind11::arg("n_clusters"),
+          pybind11::arg("max_blocksize"));
+
+    m.def("v2_gemm_mixed", &fabq_rc::v2_gemm_mixed,
+          "v2: vectorized mixed int4 + binary GEMM. Forward pass for the "
+          "general FABQ-RC layer (mixed allocation). Bias is optional.",
+          pybind11::arg("x"),
+          pybind11::arg("int4_w"),
+          pybind11::arg("int4_scales"),
+          pybind11::arg("binary_bits"),
+          pybind11::arg("binary_scales"),
+          pybind11::arg("codebook_idx"),
+          pybind11::arg("codebook"),
+          pybind11::arg("row_to_int4"),
+          pybind11::arg("row_to_binary"),
+          pybind11::arg("bias") = pybind11::none(),
+          pybind11::arg("y"),
+          pybind11::arg("n_blocks"),
+          pybind11::arg("blocksize"),
+          pybind11::arg("n_clusters"),
+          pybind11::arg("max_blocksize"));
+
+    m.def("v2_embed_lookup", &fabq_rc::v2_embed_lookup,
+          "v2: quantized embedding lookup. Reads compressed embeddings "
+          "(int4 channels + binary bits + codebook) directly without "
+          "materializing an FP16 embedding table.",
+          pybind11::arg("token_ids"),
+          pybind11::arg("int4_w"),
+          pybind11::arg("int4_scales"),
+          pybind11::arg("embed_int4_idx"),
+          pybind11::arg("binary_bits"),
+          pybind11::arg("binary_scales"),
+          pybind11::arg("codebook_idx"),
+          pybind11::arg("codebook"),
+          pybind11::arg("embed_bin_idx"),
+          pybind11::arg("y"),
+          pybind11::arg("n_blocks"),
+          pybind11::arg("blocksize"),
+          pybind11::arg("n_clusters"),
+          pybind11::arg("max_blocksize"));
+
+    // Version of the v2 path. Exposed so Python can decide whether to use
+    // v2 or fall back to v1. v2 requires SM 8.0+ for the tensor-core path;
+    // on older GPUs the scalar fallback inside v2 still runs.
+    m.attr("V2_AVAILABLE") = true;
 
     // Format constants exposed for Python-side validation
     m.attr("LAYER_MAGIC")    = (uint64_t)fabq_rc::kLayerMagic;
