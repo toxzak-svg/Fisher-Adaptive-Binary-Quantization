@@ -1,3 +1,8 @@
+﻿## 2026-06-25
+
+Daily sync.
+
+- Auto-sync: captured esults/qwen3_06b_unified_fabq_benchmark.log (new file).
 # Changelog
 
 All notable changes to this project will be documented in this file.
