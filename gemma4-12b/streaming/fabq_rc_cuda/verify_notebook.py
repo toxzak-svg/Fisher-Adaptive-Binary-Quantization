@@ -18,7 +18,7 @@ for i, c in enumerate(nb['cells']):
 # Quick sanity: first cell should be markdown, then 8 code cells, then markdown, then 2 code
 assert nb['cells'][0]['cell_type'] == 'markdown', "first cell should be markdown"
 code_cells = [c for c in nb['cells'] if c['cell_type'] == 'code']
-print(f"\ncode cells: {len(code_cells)} (expected 8)")
-assert len(code_cells) == 8, f"expected 8 code cells, got {len(code_cells)}"
+print(f"\ncode cells: {len(code_cells)} (expected 9)")
+assert len(code_cells) == 9, f"expected 9 code cells, got {len(code_cells)}"
 
 print("\nOK")
