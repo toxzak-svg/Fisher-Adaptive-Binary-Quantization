@@ -1,0 +1,75 @@
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/617 [00:00<?, ?it/s]Loading weights:  56%|█████▋    | 348/617 [00:00<00:00, 3467.31it/s]Loading weights: 100%|██████████| 617/617 [00:00<00:00, 4812.84it/s]
+[warn] dataset load failed, using inline corpus: ConnectionError: Couldn't reach 'wikitext' on the Hub (OfflineModeIsEnabled)
+{
+  "repo_id": "/content/Qwen3.5-2B",
+  "validation": {
+    "loaded": true,
+    "imatrix_layers": 186,
+    "quantized": true,
+    "can_forward": true,
+    "can_generate": true
+  },
+  "quantization": {
+    "method": "unified_fabq_vp_ebq_dequantized",
+    "method_note": "Forward-only imatrix calibration selects variable row precision. int2/binary rows receive block residual mean correction. Weights are dequantized back to dense tensors for CPU validation.",
+    "target_bpw": 3.0,
+    "mix": {
+      "int8": 0.03,
+      "int4": 0.49,
+      "int2": 0.24,
+      "binary": 0.24
+    },
+    "mix_nominal_bpw": 2.92,
+    "blocksize": 128,
+    "layers_quantized": 284,
+    "target_weights": 1699872768,
+    "mse": 1.807459576272519e-05,
+    "sqnr_db": 9.375920351578852,
+    "estimated_bpw": 3.108853473908937,
+    "precision_histogram": {
+      "int8": 23920,
+      "int4": 391727,
+      "int2": 191903,
+      "binary": 191746
+    },
+    "elapsed_sec": 40.39564700000028
+  },
+  "perplexity": {
+    "loss": 5.23911452293396,
+    "perplexity": 188.50311330036075,
+    "tokens": 254,
+    "block_size": 128,
+    "chunks": 2,
+    "eval_tokens": 256,
+    "forward_sec": 11.34199912799977,
+    "forward_tokens_per_sec": 22.394641115158898
+  },
+  "forward_throughput": {
+    "prompt_tokens": 7,
+    "repeats": 3,
+    "total_sec": 1.9579738380007257,
+    "tokens_per_sec": 10.725373134425006,
+    "per_run_sec": [
+      0.6369176690004679,
+      0.6629385320002257,
+      0.6581176370000321
+    ]
+  },
+  "generation": {
+    "prompt_tokens": 7,
+    "total_tokens": 31,
+    "new_tokens": 24,
+    "elapsed_sec": 4.100574799000242,
+    "new_tokens_per_sec": 5.8528379986755565
+  },
+  "rss_gb": {
+    "start": 0.83935232,
+    "after_load": 1.11499264,
+    "after_imatrix": 5.018984448,
+    "after_unified_quantize": 5.728366592,
+    "after_benchmark": 5.675839488
+  }
+}
+Output preview: The future of compact language models is the future of the future of the future of the future of the future of the future of the future of the future of
+Wrote /content/benchmarks/qwen3_5_2b_unified_fabq_benchmark.json
