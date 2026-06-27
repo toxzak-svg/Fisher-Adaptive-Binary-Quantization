@@ -1,6 +1,7 @@
 import subprocess
 import sys
 from pathlib import Path
+import os
 
 from benchmark_unified_fabq import (
     estimate_mix_bpw,
@@ -12,9 +13,12 @@ BENCHMARK_DIR = Path(__file__).resolve().parent
 
 
 def run_torch_check(source: str) -> None:
+    env = os.environ.copy()
+    env.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
     completed = subprocess.run(
         [sys.executable, "-c", source],
         cwd=str(BENCHMARK_DIR),
+        env=env,
         text=True,
         capture_output=True,
         check=False,
@@ -31,13 +35,21 @@ def test_precision_mix_for_target_tracks_requested_budget():
     assert mix["int4"] > mix["binary"]
 
 
+def test_precision_mix_for_high_quality_floor_avoids_int2_and_binary():
+    mix = precision_mix_for_target(4.5)
+
+    assert mix["int2"] == 0.0
+    assert mix["binary"] == 0.0
+    assert estimate_mix_bpw(mix) == 4.4
+
+
 def test_weighted_mse_uses_imatrix_input_importance():
     run_torch_check(
         """
 import torch
 from benchmark_unified_fabq import weighted_mse
 weight = torch.zeros(2, 3)
-recon = torch.tensor([[1.0, 1.0, 1.0], [0.0, 2.0, 0.0]])
+recon = torch.tensor([[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
 importance = torch.tensor([10.0, 1.0, 1.0])
 assert weighted_mse(weight, recon, importance) > weighted_mse(weight, recon, torch.ones(3))
 """
@@ -81,7 +93,7 @@ def test_block_residual_correction_reduces_binary_error():
         """
 import torch
 from benchmark_unified_fabq import apply_block_residual_correction, quantize_symmetric, weighted_mse
-weight = torch.tensor([[0.2, 0.4, 1.2, 1.4]])
+weight = torch.tensor([[0.2, 0.4, 1.2, -2.4]])
 importance = torch.ones(4)
 recon = quantize_symmetric(weight, bits=1, input_importance=importance, blocksize=4)
 corrected = apply_block_residual_correction(weight, recon, blocksize=4)

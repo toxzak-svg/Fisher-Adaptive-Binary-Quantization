@@ -54,12 +54,33 @@ def dtype_parameter_counts(model) -> dict[str, int]:
     return counts
 
 
+def load_model_low_memory(model_cls, config, repo_id: str, torch):
+    """Load a model, using a manual .bin path when Transformers dispatch exits."""
+    repo_path = Path(repo_id)
+    bin_path = repo_path / "pytorch_model.bin"
+    if repo_path.exists() and bin_path.exists():
+        dtype = getattr(config, "torch_dtype", None) or torch.bfloat16
+        model = model_cls.from_config(config, trust_remote_code=True, dtype=dtype)
+        state = torch.load(bin_path, map_location="cpu", weights_only=True)
+        model.load_state_dict(state, strict=True)
+        del state
+        return model
+    return model_cls.from_pretrained(
+        repo_id,
+        dtype="auto",
+        trust_remote_code=True,
+        low_cpu_mem_usage=True,
+    )
+
+
 def precision_mix_for_target(target_bpw: float) -> dict[str, float]:
     """Return conservative row fractions for a requested unified-spec budget."""
     if target_bpw <= 2.05:
         return {"int8": 0.02, "int4": 0.18, "int2": 0.30, "binary": 0.50}
     if target_bpw <= 3.05:
         return {"int8": 0.03, "int4": 0.49, "int2": 0.24, "binary": 0.24}
+    if target_bpw >= 4.5:
+        return {"int8": 0.10, "int4": 0.90, "int2": 0.0, "binary": 0.0}
     return {"int8": 0.05, "int4": 0.85, "int2": 0.10, "binary": 0.0}
 
 
@@ -351,12 +372,7 @@ def main() -> int:
     model_cls = AutoModelForImageTextToText if model_kind == "image_text_to_text" else AutoModelForCausalLM
 
     load_t0 = time.perf_counter()
-    model = model_cls.from_pretrained(
-        args.repo_id,
-        dtype="auto",
-        trust_remote_code=True,
-        low_cpu_mem_usage=True,
-    )
+    model = load_model_low_memory(model_cls, config, args.repo_id, torch)
     model.eval()
     load_sec = time.perf_counter() - load_t0
     rss_loaded = rss_gb()

@@ -1,0 +1,3230 @@
+{
+  "repo_id": "results\\qwen3_06b_bin_checkpoint",
+  "benchmark_kind": "unified_fabq_vp_ebq_dequantized_runtime_validation",
+  "architecture": [
+    "Qwen3ForCausalLM"
+  ],
+  "model_type": "qwen3",
+  "auto_model_kind": "causal_lm",
+  "environment": {
+    "python": "3.14.4",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.11.0+cpu",
+    "cuda_available": false,
+    "torch_threads": 8
+  },
+  "validation": {
+    "loaded": true,
+    "imatrix_layers": 196,
+    "quantized": true,
+    "can_forward": true,
+    "can_generate": true
+  },
+  "parameter_count": 596049920,
+  "dtype_parameter_counts": {
+    "torch.bfloat16": 596049920
+  },
+  "rss_gb": {
+    "start": 0.443826176,
+    "after_load": 2.559270912,
+    "after_imatrix": 1.89171712,
+    "after_unified_quantize": 1.927323648,
+    "after_benchmark": 1.972744192
+  },
+  "load_sec": 56.7177032000036,
+  "imatrix_sec": 15.856088100001216,
+  "dataset": "wikitext/wikitext-2-raw-v1/test",
+  "quantization": {
+    "method": "unified_fabq_vp_ebq_dequantized",
+    "method_note": "Forward-only imatrix calibration selects variable row precision. int2/binary rows receive block residual mean correction. Weights are dequantized back to dense tensors for CPU validation.",
+    "target_bpw": 3.0,
+    "mix": {
+      "int8": 0.03,
+      "int4": 0.49,
+      "int2": 0.24,
+      "binary": 0.24
+    },
+    "mix_nominal_bpw": 2.92,
+    "blocksize": 128,
+    "layers_quantized": 196,
+    "target_weights": 440401920,
+    "mse": 8.687487374382998e-05,
+    "sqnr_db": 9.69831530913731,
+    "estimated_bpw": 3.115056355794271,
+    "precision_histogram": {
+      "int8": 10332,
+      "int4": 168616,
+      "int2": 82600,
+      "binary": 82516
+    },
+    "elapsed_sec": 14.673513900022954,
+    "layers": [
+      {
+        "name": "model.layers.0.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 207.32944998768875,
+        "signal": 2059.9809480872323,
+        "weighted_mse": 7.8367862442974e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.0.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 105.72555009506277,
+        "signal": 983.9456104551759,
+        "weighted_mse": 7.92659557191655e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.0.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 90.71059424290436,
+        "signal": 743.5482392978074,
+        "weighted_mse": 6.658148777205497e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.0.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 161.5204055809662,
+        "signal": 1396.539630642963,
+        "weighted_mse": 7.224947330541909e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.0.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 430.3167629531681,
+        "signal": 4220.628184048595,
+        "weighted_mse": 0.00011117933900095522,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.0.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 294.62051180273727,
+        "signal": 2102.8500742265537,
+        "weighted_mse": 6.33266317890957e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.0.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 292.32074628210466,
+        "signal": 2165.974971659488,
+        "weighted_mse": 8.299086039187387e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.1.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 164.1622711137769,
+        "signal": 1981.189614149087,
+        "weighted_mse": 6.21703002252616e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.1.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 78.6917212491852,
+        "signal": 879.0410264634835,
+        "weighted_mse": 6.139902689028531e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.1.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 106.19127659091384,
+        "signal": 847.2321681295414,
+        "weighted_mse": 6.424620369216427e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.1.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 160.7533250981427,
+        "signal": 1508.2879552599557,
+        "weighted_mse": 7.284492312464863e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.1.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 630.4885151882746,
+        "signal": 6026.846583305492,
+        "weighted_mse": 0.0001630807382753119,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.1.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 209.05400666612948,
+        "signal": 1719.6227852081613,
+        "weighted_mse": 2.5303867005277425e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.1.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 219.57361004040712,
+        "signal": 1629.368500367234,
+        "weighted_mse": 5.745404996559955e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.2.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 172.21767282762835,
+        "signal": 1894.3448046361218,
+        "weighted_mse": 6.001102883601561e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.2.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 69.6898399789348,
+        "signal": 825.3795939005768,
+        "weighted_mse": 5.068010068498552e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.2.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 85.31704769921453,
+        "signal": 816.2377157395848,
+        "weighted_mse": 4.761094169225544e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.2.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 158.8270641223087,
+        "signal": 1388.8836351179623,
+        "weighted_mse": 7.376021676464006e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.2.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 451.1087285185496,
+        "signal": 4966.810483849175,
+        "weighted_mse": 0.00010753035166999325,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.2.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 242.60105664175006,
+        "signal": 1762.046039694753,
+        "weighted_mse": 3.3171872928505763e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.2.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 312.35862358720203,
+        "signal": 1765.8638881023771,
+        "weighted_mse": 2.0321692772995448e-06,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.3.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 157.2934131986157,
+        "signal": 1904.5567396802066,
+        "weighted_mse": 5.622286334983073e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.3.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 71.09408582239737,
+        "signal": 868.6102730520413,
+        "weighted_mse": 5.252710252534598e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.3.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 114.07138510025946,
+        "signal": 949.3874437300565,
+        "weighted_mse": 6.36437107459642e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.3.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 178.60619724550492,
+        "signal": 1637.2049738873109,
+        "weighted_mse": 7.33206034055911e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.3.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 493.1726146783492,
+        "signal": 4996.451482150346,
+        "weighted_mse": 0.00012931421224493533,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.3.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 256.54523977389863,
+        "signal": 1904.0828327397894,
+        "weighted_mse": 3.8666734326398e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.3.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 233.33657789547686,
+        "signal": 1808.738573511529,
+        "weighted_mse": 6.474799010902643e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.4.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 167.55494359578663,
+        "signal": 1810.9299270323484,
+        "weighted_mse": 5.413726466940716e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.4.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 86.61941900452842,
+        "signal": 834.2562568119331,
+        "weighted_mse": 5.4352949518943205e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.4.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 112.84856509334725,
+        "signal": 917.3067601800167,
+        "weighted_mse": 5.720654007745907e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.4.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 184.25240853350226,
+        "signal": 1534.4224102436685,
+        "weighted_mse": 7.345246558543295e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.4.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 449.9934634152242,
+        "signal": 4589.32736995552,
+        "weighted_mse": 0.00011730820551747456,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.4.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 251.96307390340235,
+        "signal": 1947.9563957982757,
+        "weighted_mse": 4.573920523398556e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.4.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 242.4662325241399,
+        "signal": 1836.906280048103,
+        "weighted_mse": 6.795865920139477e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.5.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 185.30888382771533,
+        "signal": 1951.210402117598,
+        "weighted_mse": 5.4367927077692e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.5.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 87.68557375210244,
+        "signal": 815.1999448748545,
+        "weighted_mse": 5.1541763241402805e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.5.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 111.24699384590053,
+        "signal": 828.355556104674,
+        "weighted_mse": 4.957477722200565e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.5.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 194.65125688782078,
+        "signal": 1508.7488312715102,
+        "weighted_mse": 7.176324288593605e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.5.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 370.69616352556864,
+        "signal": 3727.3659542677397,
+        "weighted_mse": 9.670960571384057e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.5.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 280.26677177893174,
+        "signal": 2165.179990594691,
+        "weighted_mse": 5.875507849850692e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.5.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 264.63803163482,
+        "signal": 2044.3997637800878,
+        "weighted_mse": 7.700183778069913e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.6.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 137.74648185794013,
+        "signal": 1907.6145331992984,
+        "weighted_mse": 4.857609746977687e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.6.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 53.82995898427933,
+        "signal": 797.8081415884558,
+        "weighted_mse": 4.002455898444168e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.6.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 95.94671328027027,
+        "signal": 832.4025716180374,
+        "weighted_mse": 4.812973929801956e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.6.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 150.6697866287321,
+        "signal": 1318.979664648596,
+        "weighted_mse": 5.7978559198090807e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.6.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 347.3106236573126,
+        "signal": 3527.6315289015733,
+        "weighted_mse": 9.048097854247317e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.6.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 267.8278190149069,
+        "signal": 2157.634140721463,
+        "weighted_mse": 5.616222551907413e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.6.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 247.45412918748252,
+        "signal": 1989.3502479862116,
+        "weighted_mse": 7.096400804584846e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.7.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 169.04581729276106,
+        "signal": 1734.0910318477127,
+        "weighted_mse": 5.439759115688503e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.7.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 75.38676869555279,
+        "signal": 723.7527700860871,
+        "weighted_mse": 5.040341056883335e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.7.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 106.58172383790053,
+        "signal": 804.0217917024863,
+        "weighted_mse": 5.043736382503994e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.7.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 148.65467693717537,
+        "signal": 1342.3003712655159,
+        "weighted_mse": 6.527236109832302e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.7.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 332.84560191013645,
+        "signal": 3568.89581819681,
+        "weighted_mse": 8.325610542669892e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.7.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 260.8042004210543,
+        "signal": 2127.6060854236475,
+        "weighted_mse": 5.238028825260699e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.7.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 244.03737822351172,
+        "signal": 1916.6400716178114,
+        "weighted_mse": 5.695756772183813e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.8.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 134.53648782860546,
+        "signal": 1883.0341604636726,
+        "weighted_mse": 4.518520290730521e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.8.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 59.89798013783575,
+        "signal": 761.677604856699,
+        "weighted_mse": 4.09914500778541e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.8.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 105.41539380656212,
+        "signal": 800.6977155814939,
+        "weighted_mse": 5.364898970583454e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.8.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 142.76291819069536,
+        "signal": 1285.0696901202014,
+        "weighted_mse": 5.0470793212298304e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.8.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 307.4702188803552,
+        "signal": 3410.4010046665917,
+        "weighted_mse": 7.822892803233117e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.8.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 256.0728135763603,
+        "signal": 2129.5166898772445,
+        "weighted_mse": 5.4851920140208676e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.8.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 241.09498993817115,
+        "signal": 1971.0207747264976,
+        "weighted_mse": 6.675629265373573e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.9.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 139.30316423526082,
+        "signal": 1875.8863962230903,
+        "weighted_mse": 4.2559033317957073e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.9.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 67.8380066566859,
+        "signal": 743.6580023348696,
+        "weighted_mse": 4.258804983692244e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.9.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 87.42077459150397,
+        "signal": 765.4864439980904,
+        "weighted_mse": 3.8032208976801485e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.9.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 163.9967018488995,
+        "signal": 1320.9027796761345,
+        "weighted_mse": 5.509048787644133e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.9.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 306.58983929981537,
+        "signal": 3585.063717173757,
+        "weighted_mse": 7.346741040237248e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.9.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 260.1170040967352,
+        "signal": 2200.3815607678666,
+        "weighted_mse": 5.167218841961585e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.9.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 235.17707452379574,
+        "signal": 1874.2239490095192,
+        "weighted_mse": 5.872748442925513e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.10.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 172.11036435409574,
+        "signal": 1757.8569405434437,
+        "weighted_mse": 4.900300700683147e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.10.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 79.82431180636466,
+        "signal": 761.9400180537682,
+        "weighted_mse": 4.5939992560306564e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.10.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 96.67218944804303,
+        "signal": 763.6572598273148,
+        "weighted_mse": 4.218714821035974e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.10.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 144.97687083440331,
+        "signal": 1267.9980059415648,
+        "weighted_mse": 5.950036575086415e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.10.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 280.51433159003045,
+        "signal": 3541.83333912303,
+        "weighted_mse": 6.506474892375991e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.10.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 260.2349809996182,
+        "signal": 2152.7430595258684,
+        "weighted_mse": 5.180338121135719e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.10.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 243.15361471281273,
+        "signal": 1756.8706250096657,
+        "weighted_mse": 5.484200664795935e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.11.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 142.35757836190936,
+        "signal": 2050.514599026797,
+        "weighted_mse": 3.971809201175347e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.11.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 55.73204091556103,
+        "signal": 742.8799021886991,
+        "weighted_mse": 3.359154288773425e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.11.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 81.20544361258492,
+        "signal": 691.6043851738667,
+        "weighted_mse": 3.099579771514982e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.11.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 135.00033739619747,
+        "signal": 1137.7982229438135,
+        "weighted_mse": 4.297832856536843e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.11.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 273.7427227534147,
+        "signal": 3035.3652851979423,
+        "weighted_mse": 6.805831071687862e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.11.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 257.36234856435254,
+        "signal": 2288.234938169548,
+        "weighted_mse": 5.6728375056991354e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.11.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 246.26538500044146,
+        "signal": 1977.104495048726,
+        "weighted_mse": 5.9960362705169246e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.12.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 149.56943795875162,
+        "signal": 1919.4239799651436,
+        "weighted_mse": 4.69970254926011e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.12.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 58.509402721321536,
+        "signal": 691.4181788242097,
+        "weighted_mse": 3.641247167252004e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.12.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 90.6231374752377,
+        "signal": 727.8438057250378,
+        "weighted_mse": 4.199213799438439e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.12.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 109.3563243901441,
+        "signal": 1134.3109849682003,
+        "weighted_mse": 4.337705468060449e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.12.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 270.6793100319277,
+        "signal": 2776.4373804933434,
+        "weighted_mse": 6.823505827924237e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.12.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 252.14025679873066,
+        "signal": 2227.8523835889127,
+        "weighted_mse": 5.605965634458698e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.12.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 236.959011192487,
+        "signal": 1961.0215716668454,
+        "weighted_mse": 5.777538171969354e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.13.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 129.80987629557754,
+        "signal": 1778.0583997298068,
+        "weighted_mse": 3.7025209167040884e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.13.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 50.955951423776874,
+        "signal": 617.8011643667041,
+        "weighted_mse": 2.9239719879115e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.13.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 92.72814388118685,
+        "signal": 724.665987941205,
+        "weighted_mse": 3.666415432235226e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.13.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 103.91805494695755,
+        "signal": 1064.8216128097847,
+        "weighted_mse": 4.105859261471778e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.13.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 242.74074564997252,
+        "signal": 2558.8218424395177,
+        "weighted_mse": 6.133967690402642e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.13.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 228.77511194719511,
+        "signal": 2050.0459323747837,
+        "weighted_mse": 5.159317151992582e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.13.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 221.57256380526962,
+        "signal": 1813.5363382065977,
+        "weighted_mse": 5.385092299547978e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.14.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 137.47268797890894,
+        "signal": 1710.6220880200817,
+        "weighted_mse": 3.759617902687751e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.14.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 49.42605562405794,
+        "signal": 613.0171338198229,
+        "weighted_mse": 2.7643727662507445e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.14.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 84.40903858243087,
+        "signal": 646.9038997351131,
+        "weighted_mse": 3.4756238164845854e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.14.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 102.851582438682,
+        "signal": 1008.1939928990233,
+        "weighted_mse": 3.8406302337534726e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.14.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 231.7962273996102,
+        "signal": 2338.432651461818,
+        "weighted_mse": 5.521313869394362e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.14.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 221.0415807906787,
+        "signal": 1907.9827069308171,
+        "weighted_mse": 4.648627873393707e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.14.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 219.2739585584145,
+        "signal": 1753.217249543323,
+        "weighted_mse": 5.753791265306063e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.15.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 132.14679894612135,
+        "signal": 1778.447132596692,
+        "weighted_mse": 3.561400808393955e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.15.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 48.73031574767357,
+        "signal": 546.2316206267193,
+        "weighted_mse": 2.7172627596883103e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.15.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 95.58729292871084,
+        "signal": 700.9448566181576,
+        "weighted_mse": 3.3531279768794775e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.15.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 119.25998648323721,
+        "signal": 1115.6465197794728,
+        "weighted_mse": 3.91328867408447e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.15.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 226.73195340804364,
+        "signal": 2361.1032196600027,
+        "weighted_mse": 5.301239434629679e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.15.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 229.8157095359873,
+        "signal": 1986.2879020717614,
+        "weighted_mse": 4.521642767940648e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.15.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 218.67624612512247,
+        "signal": 1748.6058849102378,
+        "weighted_mse": 5.3352530812844634e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.16.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 124.29171400778978,
+        "signal": 2088.712101141538,
+        "weighted_mse": 3.227129127481021e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.16.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 40.83326209722161,
+        "signal": 593.038141951879,
+        "weighted_mse": 2.35828756558476e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.16.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 83.77717200463466,
+        "signal": 692.0026698570855,
+        "weighted_mse": 3.0126386263873428e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.16.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 117.56288073244058,
+        "signal": 1097.8483919190799,
+        "weighted_mse": 4.7904832172207534e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.16.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 244.19298141865494,
+        "signal": 2317.5016210538283,
+        "weighted_mse": 5.335249807103537e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.16.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 262.57773632243675,
+        "signal": 2119.823918447287,
+        "weighted_mse": 4.7535679186694324e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.16.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 265.09340978739215,
+        "signal": 1787.6664335017633,
+        "weighted_mse": 5.743147630710155e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.17.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 138.05064369664387,
+        "signal": 1852.683921384356,
+        "weighted_mse": 3.465505506028421e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.17.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 50.045013464951445,
+        "signal": 566.7322615340864,
+        "weighted_mse": 2.8068268875358626e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.17.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 88.15695861838572,
+        "signal": 742.0266666466828,
+        "weighted_mse": 3.2908406865317374e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.17.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 126.02489775988849,
+        "signal": 1105.454017661094,
+        "weighted_mse": 4.7442874347325414e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.17.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 229.2582994479893,
+        "signal": 2335.2075481113643,
+        "weighted_mse": 5.0291975639993325e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.17.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 269.95206827237996,
+        "signal": 2267.886562569817,
+        "weighted_mse": 4.892507058684714e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.17.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 241.38418917077513,
+        "signal": 1812.8690928732103,
+        "weighted_mse": 6.218234193511307e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.18.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 121.72947310533738,
+        "signal": 1925.0517653287416,
+        "weighted_mse": 3.0681225325679407e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.18.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 42.78149828444994,
+        "signal": 541.4463747510189,
+        "weighted_mse": 2.3242964743985794e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.18.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 99.58084970334372,
+        "signal": 677.047026910849,
+        "weighted_mse": 3.366820601513609e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.18.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 115.16915678700458,
+        "signal": 1020.5978206293479,
+        "weighted_mse": 4.7628931497456506e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.18.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 224.05981961671813,
+        "signal": 2333.3352608521577,
+        "weighted_mse": 5.182371023693122e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.18.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 272.45924746581363,
+        "signal": 2313.9527138600624,
+        "weighted_mse": 5.1913269999204203e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.18.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 276.6410287060014,
+        "signal": 1971.932074285371,
+        "weighted_mse": 6.842154107289389e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.19.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 115.63017517464941,
+        "signal": 2108.7574604908777,
+        "weighted_mse": 3.238553472328931e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.19.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 44.364267999620125,
+        "signal": 550.9058593793349,
+        "weighted_mse": 2.669755122042261e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.19.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 93.85152876996628,
+        "signal": 699.5719464415163,
+        "weighted_mse": 3.7223202525638044e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.19.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 132.2584758597892,
+        "signal": 1132.5905729488375,
+        "weighted_mse": 5.084303847979754e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.19.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 218.68587458821693,
+        "signal": 2258.9316341996023,
+        "weighted_mse": 5.365505421650596e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.19.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 295.63217946127054,
+        "signal": 2534.969433755534,
+        "weighted_mse": 5.846314525115304e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.19.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 327.31303003421334,
+        "signal": 2207.3779893926167,
+        "weighted_mse": 7.053805893519893e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.20.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 138.02126974466515,
+        "signal": 2320.5661320106046,
+        "weighted_mse": 3.433289748500101e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.20.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 56.67328127083572,
+        "signal": 643.8538617985955,
+        "weighted_mse": 3.081496834056452e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.20.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 100.52647310366221,
+        "signal": 766.5988980065624,
+        "weighted_mse": 4.2452305933693424e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.20.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 152.5088482959317,
+        "signal": 1261.3188029254165,
+        "weighted_mse": 5.107039032736793e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.20.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 235.5705607105532,
+        "signal": 2368.4458182932963,
+        "weighted_mse": 5.956415043328889e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.20.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 324.2686734431522,
+        "signal": 2811.602254823676,
+        "weighted_mse": 6.852910883026198e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.20.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 341.7457282778691,
+        "signal": 2485.3176575785155,
+        "weighted_mse": 7.73415231378749e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.21.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 149.6682802484224,
+        "signal": 2399.4352907181756,
+        "weighted_mse": 4.2117200791835785e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.21.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 44.731387792866585,
+        "signal": 673.2638171844176,
+        "weighted_mse": 2.992000554513652e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.21.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 108.50039116407258,
+        "signal": 870.4125706923999,
+        "weighted_mse": 4.457441536942497e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.21.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 150.1717291738567,
+        "signal": 1407.6716053118457,
+        "weighted_mse": 6.606844544876367e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.21.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 254.02451736637664,
+        "signal": 2472.719425244558,
+        "weighted_mse": 6.717441283399239e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.21.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 366.9882829091563,
+        "signal": 3208.3719143130793,
+        "weighted_mse": 8.127110049827024e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.21.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 343.98261190257347,
+        "signal": 2868.929984627607,
+        "weighted_mse": 7.808133523212746e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.22.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 148.43679819394464,
+        "signal": 2325.819495026695,
+        "weighted_mse": 3.705952985910699e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.22.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 55.70167029566144,
+        "signal": 706.1405019816598,
+        "weighted_mse": 3.14777425955981e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.22.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 115.65792643719234,
+        "signal": 871.9908757745441,
+        "weighted_mse": 4.686549073085189e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.22.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 161.1821548054036,
+        "signal": 1420.2136620335914,
+        "weighted_mse": 6.294355989666656e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.22.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 272.77006980765066,
+        "signal": 2627.023714528987,
+        "weighted_mse": 7.439027103828266e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.22.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 407.369682325369,
+        "signal": 3476.6637866780666,
+        "weighted_mse": 9.559962927596644e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.22.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 344.10100348152673,
+        "signal": 3196.0453942951344,
+        "weighted_mse": 7.909833948360756e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.23.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 169.261785002236,
+        "signal": 1927.6543528408558,
+        "weighted_mse": 4.298826024751179e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.23.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 63.68897539067956,
+        "signal": 666.9223311941669,
+        "weighted_mse": 3.682391616166569e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.23.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 120.35130653904315,
+        "signal": 828.256106795053,
+        "weighted_mse": 4.265250754542649e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.23.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 163.01313315771012,
+        "signal": 1440.472092475028,
+        "weighted_mse": 6.655598554061726e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.23.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 292.1387476560679,
+        "signal": 2732.1555285200297,
+        "weighted_mse": 8.075674122665077e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.23.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 436.5807055305063,
+        "signal": 3628.9836891174764,
+        "weighted_mse": 0.00010324206232326105,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.23.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 359.82881077926356,
+        "signal": 3391.810791368517,
+        "weighted_mse": 8.048601011978462e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.24.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 168.9466172421865,
+        "signal": 2240.4469777669196,
+        "weighted_mse": 4.5116772525943816e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.24.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 55.0043407486925,
+        "signal": 672.0408281407375,
+        "weighted_mse": 3.697759530041367e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.24.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 130.52270766692305,
+        "signal": 815.0091473086782,
+        "weighted_mse": 4.441649070940912e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.24.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 157.86117336796627,
+        "signal": 1464.6464261170415,
+        "weighted_mse": 6.0433114413172007e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.24.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 293.37890335348106,
+        "signal": 2656.682971375666,
+        "weighted_mse": 8.206853090086952e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.24.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 455.72539469422725,
+        "signal": 3723.7983964944497,
+        "weighted_mse": 0.00010901084169745445,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.24.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 370.66662701057834,
+        "signal": 3486.1838421129046,
+        "weighted_mse": 7.89799596532248e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.25.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 146.9437991538826,
+        "signal": 2294.1878918914826,
+        "weighted_mse": 4.1173283534590155e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.25.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 50.96208258412591,
+        "signal": 590.0228150350824,
+        "weighted_mse": 3.350869155838154e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.25.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 145.8917858482461,
+        "signal": 991.5016381628283,
+        "weighted_mse": 4.777538197231479e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.25.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 176.80014638997258,
+        "signal": 1622.1337167633983,
+        "weighted_mse": 6.628644041484222e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.25.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 287.4602122073679,
+        "signal": 2526.74462684919,
+        "weighted_mse": 7.656422530999407e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.25.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 459.2046101754026,
+        "signal": 3765.3813178292644,
+        "weighted_mse": 0.00010487453982932493,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.25.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 379.88989946553227,
+        "signal": 3447.186345088519,
+        "weighted_mse": 8.347712719114497e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.26.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 147.16424991291666,
+        "signal": 2684.2019456558282,
+        "weighted_mse": 3.772037598537281e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.26.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 50.387981132279926,
+        "signal": 570.5057167899511,
+        "weighted_mse": 3.1476298318011686e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.26.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 127.635451797621,
+        "signal": 916.0153079620113,
+        "weighted_mse": 5.0448463298380375e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.26.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 181.3874362727119,
+        "signal": 1585.757489444078,
+        "weighted_mse": 5.41006083949469e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.26.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 275.8861269830403,
+        "signal": 2462.4956259471696,
+        "weighted_mse": 6.213831511558965e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.26.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 453.52982602266036,
+        "signal": 3675.164146157966,
+        "weighted_mse": 8.657346916152164e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.26.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 417.2435242188859,
+        "signal": 3164.3741793786235,
+        "weighted_mse": 7.930982974357903e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.27.self_attn.q_proj",
+        "out_features": 2048,
+        "in_features": 1024,
+        "weights": 2097152,
+        "sse": 182.99602060892335,
+        "signal": 1975.7699293605372,
+        "weighted_mse": 5.885486461920664e-05,
+        "storage_bits": 6536400,
+        "precision_counts": {
+          "int8": 61,
+          "int4": 1004,
+          "int2": 492,
+          "binary": 491
+        }
+      },
+      {
+        "name": "model.layers.27.self_attn.k_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 92.71210239953474,
+        "signal": 853.7514668091949,
+        "weighted_mse": 5.909688843530603e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.27.self_attn.v_proj",
+        "out_features": 1024,
+        "in_features": 1024,
+        "weights": 1048576,
+        "sse": 143.5627526152744,
+        "signal": 1094.7644562374328,
+        "weighted_mse": 6.909486546646804e-05,
+        "storage_bits": 3271664,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.27.self_attn.o_proj",
+        "out_features": 1024,
+        "in_features": 2048,
+        "weights": 2097152,
+        "sse": 217.52491287347416,
+        "signal": 1774.9935358987143,
+        "weighted_mse": 8.556347893318161e-05,
+        "storage_bits": 6526448,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      },
+      {
+        "name": "model.layers.27.mlp.gate_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 272.452330057463,
+        "signal": 2952.815203794892,
+        "weighted_mse": 4.4876800529891625e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.27.mlp.up_proj",
+        "out_features": 3072,
+        "in_features": 1024,
+        "weights": 3145728,
+        "sse": 392.64827073748626,
+        "signal": 3363.4918797966084,
+        "weighted_mse": 5.2780203986912966e-05,
+        "storage_bits": 9804096,
+        "precision_counts": {
+          "int8": 92,
+          "int4": 1505,
+          "int2": 737,
+          "binary": 738
+        }
+      },
+      {
+        "name": "model.layers.27.mlp.down_proj",
+        "out_features": 1024,
+        "in_features": 3072,
+        "weights": 3145728,
+        "sse": 378.2148675745426,
+        "signal": 2289.600708560586,
+        "weighted_mse": 3.1130563002079725e-05,
+        "storage_bits": 9781232,
+        "precision_counts": {
+          "int8": 31,
+          "int4": 502,
+          "int2": 246,
+          "binary": 245
+        }
+      }
+    ]
+  },
+  "perplexity": {
+    "loss": 8.092475175857544,
+    "perplexity": 3269.7708201610967,
+    "tokens": 254,
+    "block_size": 128,
+    "chunks": 2,
+    "eval_tokens": 256,
+    "forward_sec": 15.165043599990895,
+    "forward_tokens_per_sec": 16.749045152771767
+  },
+  "forward_throughput": {
+    "prompt_tokens": 7,
+    "repeats": 3,
+    "total_sec": 1.5329595000075642,
+    "tokens_per_sec": 13.69899204766752,
+    "per_run_sec": [
+      0.46470870001940057,
+      0.5291228999849409,
+      0.5391279000032227
+    ]
+  },
+  "generation": {
+    "prompt_tokens": 7,
+    "total_tokens": 31,
+    "new_tokens": 24,
+    "elapsed_sec": 3.203959100006614,
+    "new_tokens_per_sec": 7.490732325500178,
+    "output": "The future of compact language models is a complex system system system system system system is system is system system system is is is is or or or or or or"
+  },
+  "elapsed_sec": 115.30131009998149
+}

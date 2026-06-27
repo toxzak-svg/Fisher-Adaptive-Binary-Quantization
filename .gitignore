@@ -3,6 +3,10 @@
 quantized_*.pth
 .hf_cache/
 
+# Large model checkpoints (exceed GitHub 100MB limit; keep local only)
+results/*_bin_checkpoint/
+results/*_checkpoint/
+
 # Python
 __pycache__/
 *.py[cod]
