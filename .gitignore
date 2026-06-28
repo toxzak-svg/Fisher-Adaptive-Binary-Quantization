@@ -7,6 +7,9 @@ quantized_*.pth
 results/*_bin_checkpoint/
 results/*_checkpoint/
 
+# HF download cache (incomplete downloads can be 1+ GB)
+models/.cache/
+
 # Python
 __pycache__/
 *.py[cod]

@@ -1,0 +1,274 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{microtype}
+
+\title{FABQ-RC: Fisher-Adaptive Binary Quantization with Residual Codebooks for Low-Bit LLM Compression}
+\author{Zach Maronek}
+\date{June 27, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Post-training quantization can reduce the storage and memory cost of large language models (LLMs), but the extreme 1- to 2-bit regime remains brittle. This report introduces FABQ-RC, a Fisher-adaptive binary quantization design that combines channel-wise importance estimation, mixed precision row allocation, per-layer blocksize selection, and residual codebook correction. The central hypothesis is that binary quantization is viable only when the quantizer allocates extra representation capacity to loss-sensitive rows and corrects systematic residual structure after binarization.
+
+We report the current reproducible state of the project rather than a final leaderboard claim. A weight-level benchmark on Qwen3.5-0.8B shows that a simplified FABQ-RC-lite variant improves reconstruction error over fixed binary block quantizers: mean squared error is reduced by 13.3\% relative to Q1 block64 and 14.1\% relative to Q1 block128, at 1.401 bits per weight. However, dense-dequantized runtime validation shows that the simplified 1.40 bpw variant fails language modeling quality, increasing WikiText-2 slice perplexity from 35.22 to 3.68M on Qwen3-0.6B and from 26.60 to 677k on Qwen3.5-0.8B. A variable-precision prototype using forward activation importance and residual mean correction substantially improves the tradeoff: on Qwen3-0.6B, estimated 4.53 bpw yields 42.50 perplexity on the same 256-token WikiText-2 slice versus 35.22 for the dense baseline, while estimated 3.12 bpw remains inadequate at 3269.77 perplexity.
+
+These results support two conclusions. First, naive binary/int4 mixing is not sufficient; residual correction and less aggressive variable precision are necessary. Second, the previously advertised 1.18 to 1.21 bpw target is not yet supported by the measured storage accounting in this repository. FABQ-RC should therefore be read as an active research prototype with promising reconstruction behavior and a clear validation roadmap, not as a completed 1-bit replacement for production LLM inference.
+\end{abstract}
+
+\section{Introduction}
+
+LLM deployment is frequently limited by weight storage, memory bandwidth, and accelerator memory capacity. Weight-only post-training quantization (PTQ) reduces these costs without retraining the full model. Mature PTQ systems commonly operate in the 3- to 8-bit range, while the binary and near-binary regimes are harder: small quantization errors are amplified across layers, and preserving generation quality requires methods more selective than global blockwise rounding.
+
+FABQ-RC is motivated by three observations. First, not all output rows or channels are equally important to loss. Second, layer weight distributions differ enough that one global blocksize is a poor compromise. Third, binary quantization leaves structured residuals that can be modeled more flexibly than by a single scale.
+
+The proposed method combines Fisher-weighted importance, a small mixed-precision core, adaptive binary blocksize selection, and residual codebooks. The project also includes a later FABQ-VP/EBQ direction that relaxes the pure 1-bit target into a variable-precision allocation over int8, int4, int2, and binary rows. The experiments in this report evaluate the implemented prototypes and current repository artifacts.
+
+\section{Related Work}
+
+GPTQ introduced a one-shot post-training quantization method using approximate second-order information and demonstrated practical 3- and 4-bit quantization for large transformer models \cite{gptq}. AWQ showed that preserving or protecting a small set of salient channels, selected from activation statistics, can improve low-bit weight-only quantization \cite{awq}. QuIP explored 2-bit quantization with incoherence processing and theoretical guarantees \cite{quip}. BiLLM directly targets 1-bit PTQ and combines salient weight selection with binary residual approximation, reporting 1.08-bit LLaMA2-70B with 8.41 perplexity \cite{billm}. BitNet b1.58 is adjacent but distinct: it trains ternary networks natively rather than converting an existing dense model through PTQ \cite{bitnet}.
+
+FABQ-RC differs from these directions by combining a Fisher-style loss sensitivity signal with per-layer blocksize adaptation and a nonlinear residual codebook. In the current implementation, full Fisher and residual-codebook evaluation remain incomplete; the empirical results below evaluate simplified and variable-precision prototypes that preserve parts of this design.
+
+\section{Method}
+
+\subsection{Fisher-Weighted Channel Importance}
+
+For a linear layer with weight matrix \(W_l \in \mathbb{R}^{d_{out} \times d_{in}}\), FABQ-RC assigns an importance score to each output row. The target score is the diagonal Fisher estimate,
+\[
+F_{l,i} = \mathbb{E}_{(x,y) \sim D}\left[\left\| \frac{\partial L(x,y;\theta)}{\partial W_{l,i,:}} \right\|_2^2\right],
+\]
+where \(W_{l,i,:}\) is row \(i\) of layer \(l\). Rows with larger Fisher values are expected to cause larger loss changes under quantization noise.
+
+The current benchmark prototypes use cheaper substitutes. FABQ-RC-lite uses row energy as a Fisher proxy. The unified FABQ-VP/EBQ prototype uses a forward-only input activation matrix, or imatrix, to weight reconstruction error. These proxies make local CPU validation feasible but should not be interpreted as a complete Fisher calibration pass.
+
+\subsection{Mixed Precision Allocation}
+
+The original FABQ-RC allocation keeps a small fraction of high-importance rows in int4 and binarizes the remaining rows:
+\[
+a_{l,i} =
+\begin{cases}
+\text{int4}, & i \in \text{top-}p \text{ rows by importance}, \\
+\text{binary}, & \text{otherwise}.
+\end{cases}
+\]
+Most prototype runs use \(p = 0.05\). For binary rows, weights are reconstructed as
+\[
+\hat{W}_{i,j} = s_{i,b} \cdot \operatorname{sign}(W_{i,j}),
+\]
+where \(b\) denotes the block containing input coordinate \(j\), and \(s_{i,b}\) is a row-and-block scale.
+
+\subsection{Adaptive Blocksize Selection}
+
+FABQ-RC specifies per-layer selection from block sizes \(\{64, 128, 256, 512\}\). For each candidate blocksize \(B\), the method computes a reconstruction loss weighted by the row importance scores and selects the lowest-error candidate:
+\[
+B_l^\* = \arg\min_{B \in \{64,128,256,512\}} \sum_i F_{l,i}\|W_{l,i,:} - Q_B(W_{l,i,:})\|_2^2.
+\]
+The simplified runtime benchmarks selected blocksize 64 for all tested target layers. The unified variable-precision benchmark uses fixed blocksize 128 in the checked-in script, so it is a validation of the allocation idea, not a validation of fully adaptive blocksize search.
+
+\subsection{Residual Codebook Correction}
+
+Binary reconstruction leaves residuals
+\[
+R_l = W_l - \hat{W}_l.
+\]
+FABQ-RC proposes tiered residual codebooks. Residual blocks are grouped by Fisher quartile, and each tier receives a learned codebook. During reconstruction, a selected centroid is added back to the binary approximation:
+\[
+\tilde{W}_{l,b} = \hat{W}_{l,b} + C_{q(l,b), k(l,b)}.
+\]
+Here \(q(l,b)\) is the Fisher tier for block \(b\), and \(k(l,b)\) is the selected centroid index. The current CPU runtime benchmark does not include this full residual codebook; the unified prototype uses a simpler residual mean correction for int2 and binary rows.
+
+\subsection{Variable Precision Extension}
+
+The later FABQ-VP/EBQ prototype generalizes the two-level scheme to a precision pyramid. Rows are allocated to int8, int4, int2, or binary according to a target average bit budget. The checked-in prototype uses the mixes shown in Table \ref{tab:mixes}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{rrrrr}
+\toprule
+Target bpw & int8 & int4 & int2 & binary \\
+\midrule
+3.0 & 0.03 & 0.49 & 0.24 & 0.24 \\
+4.0 & 0.05 & 0.85 & 0.10 & 0.00 \\
+4.5 & 0.10 & 0.90 & 0.00 & 0.00 \\
+\bottomrule
+\end{tabular}
+\caption{Precision mixes used by the unified prototype.}
+\label{tab:mixes}
+\end{table}
+
+The implemented storage accounting includes row maps and scale overhead, so estimated bpw is slightly higher than the nominal mix.
+
+\section{Experimental Setup}
+
+The repository contains four relevant experiment classes: dense runtime baselines for Qwen/Qwen3-0.6B and Qwen/Qwen3.5-0.8B; a weight-only reconstruction benchmark for Qwen/Qwen3.5-0.8B; dense-dequantized FABQ-RC-lite runtime validation; and dense-dequantized unified FABQ-VP/EBQ runtime validation.
+
+Most local runs used Python 3.14.4, PyTorch 2.11.0+cpu, no CUDA, 8 Torch CPU threads, WikiText-2 raw test split, 256 evaluation tokens, two 128-token chunks, and deterministic generation with 24 new tokens. The Qwen3.5-2B unified run was produced in a separate environment with Python 3.12.13, PyTorch 2.11.0+cu128, CUDA available, and an inline fallback corpus because the dataset load failed in offline mode. Its perplexity is therefore not directly comparable to the WikiText-2 runs.
+
+All runtime experiments dequantize weights back into dense tensors before forward evaluation. They validate quantization quality and functional execution, but they do not measure native compressed-kernel speedups.
+
+\section{Results}
+
+\subsection{Dense Baselines}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Model & Params & PPL & Prompt tok/s & Decode tok/s \\
+\midrule
+Qwen/Qwen3-0.6B & 596,049,920 & 35.2165 & 19.06 & 9.96 \\
+Qwen/Qwen3.5-0.8B & 852,985,920 & 26.5952 & 2.46 & 0.46 \\
+\bottomrule
+\end{tabular}
+\caption{Dense baseline smoke measurements on a 256-token WikiText-2 slice.}
+\label{tab:dense}
+\end{table}
+
+\subsection{Weight Reconstruction on Qwen3.5-0.8B}
+
+The weight-level benchmark covers 244 target tensors and 615,579,648 target weights, excluding embeddings, lm\_head, routers, norms, and bias tensors.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Method & MSE & SQNR dB & bpw \\
+\midrule
+int8 rowwise symmetric & 1.779195e-08 & 40.5900 & 8.0131 \\
+int4 rowwise symmetric & 5.767223e-06 & 15.4826 & 4.0131 \\
+Q1 block64 & 7.627237e-05 & 4.2685 & 1.2500 \\
+Q1 block128 & 7.701788e-05 & 4.2263 & 1.1250 \\
+Q1 block256 & 7.751190e-05 & 4.1985 & 1.0625 \\
+Q1 block512 & 7.792983e-05 & 4.1752 & 1.0322 \\
+FABQ-RC-lite & 6.615134e-05 & 4.8868 & 1.4010 \\
+\bottomrule
+\end{tabular}
+\caption{Weight reconstruction results on Qwen3.5-0.8B target tensors.}
+\label{tab:weight}
+\end{table}
+
+FABQ-RC-lite improves MSE over all tested fixed binary block baselines. Relative to Q1 block64, MSE falls by 13.3\%. Relative to Q1 block128, MSE falls by 14.1\%. The improvement comes with a higher storage budget: 1.401 bpw versus 1.250 bpw for Q1 block64 and 1.125 bpw for Q1 block128.
+
+\subsection{FABQ-RC-Lite Runtime Validation}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llrrrr}
+\toprule
+Model & Variant & Est. bpw & SQNR dB & PPL & Decode tok/s \\
+\midrule
+Qwen3-0.6B & Dense & n/a & n/a & 35.2165 & 9.96 \\
+Qwen3-0.6B & FABQ-RC-lite & 1.4004 & 4.8623 & 3,676,448.8825 & 8.79 \\
+Qwen3.5-0.8B & Dense & n/a & n/a & 26.5952 & 0.46 \\
+Qwen3.5-0.8B & FABQ-RC-lite & 1.4010 & 4.8795 & 677,505.3533 & 0.42 \\
+\bottomrule
+\end{tabular}
+\caption{Dense-dequantized FABQ-RC-lite runtime validation.}
+\label{tab:fabq-lite}
+\end{table}
+
+The simplified binary/int4 variant is mechanically valid: models load, quantized weights are substituted, forward passes complete, and generation completes. Quality is not acceptable. This is a negative result and is important: row-energy allocation plus binary block quantization is not enough for usable 1.4 bpw language modeling.
+
+\subsection{Unified FABQ-VP/EBQ Runtime Validation on Qwen3-0.6B}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+Target & Est. bpw & MSE & SQNR dB & PPL & Decode tok/s \\
+\midrule
+Dense & n/a & n/a & n/a & 35.2165 & 9.96 \\
+3.0 & 3.1151 & 8.687487e-05 & 9.6983 & 3269.7708 & 7.49 \\
+4.0 & 4.1432 & 1.629386e-05 & 16.9670 & 67.4850 & 6.38 \\
+4.5 & 4.5255 & 7.952114e-06 & 20.0824 & 42.5027 & 8.61 \\
+\bottomrule
+\end{tabular}
+\caption{Unified FABQ-VP/EBQ dense-dequantized validation on Qwen3-0.6B.}
+\label{tab:unified}
+\end{table}
+
+The variable-precision prototype strongly outperforms FABQ-RC-lite at comparable evaluation settings. At estimated 4.5255 bpw, the small-slice perplexity gap to dense is 7.2863 absolute points, or approximately 20.7\% relative to the dense baseline. At estimated 4.1432 bpw, the gap is still substantial. At estimated 3.1151 bpw, quality remains poor.
+
+\subsection{Storage Budget Audit}
+
+An internal audit found that the previously stated 1.18 to 1.21 bpw target is not supported by the implemented storage accounting. For a representative 3840 by 3840 layer with 5\% int4 rows and 95\% binary rows, storage is approximately as shown in Table \ref{tab:storage}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{rrr}
+\toprule
+Blocksize & Approx. storage per layer & bpw excluding global codebook \\
+\midrule
+64 & 3.18 MB & 1.73 \\
+128 & 2.86 MB & 1.55 \\
+256 & 2.69 MB & 1.46 \\
+512 & 2.61 MB & 1.42 \\
+\bottomrule
+\end{tabular}
+\caption{Physical storage audit for a representative 3840 by 3840 layer.}
+\label{tab:storage}
+\end{table}
+
+The discrepancy appears to come from counting logical payload bits while omitting row maps, scales, block metadata, and other packing overhead. Future claims should report both logical bpw and physical storage bpw.
+
+\section{Discussion}
+
+The results are mixed but informative. FABQ-RC-lite improves tensor reconstruction at near-binary storage, but the language-modeling failure shows that local reconstruction alone is not a sufficient objective in the extreme regime. The unified FABQ-VP/EBQ prototype improves quality by allocating much more of the model to int4 and int8, suggesting that variable precision is a more practical near-term direction than a pure binary target.
+
+The gap between the 3.1 bpw and 4.5 bpw unified runs is especially important. It indicates a sharp quality transition: adding int4 capacity and removing binary rows improves SQNR from 9.70 dB to 20.08 dB and reduces small-slice perplexity from 3269.77 to 42.50. This suggests that the current row allocation and residual mean correction are not expressive enough for high binary fractions.
+
+The storage audit also changes the interpretation of the project. A measured 1.4 to 1.7 bpw physical budget is still highly compressed, but it is not the same claim as 1.18 bpw. Publishable future work should use physical bpw, report end-to-end model file sizes, and evaluate against fixed baselines at matched physical storage.
+
+\section{Limitations}
+
+The current experiments have several major limitations. The full Fisher gradient calibration path is not yet benchmarked in the reported runtime results. The full residual codebook design is specified but not included in the CPU dequantized runtime experiments. Perplexity uses very small 256-token slices and should be treated as smoke validation. Throughput results are for dense-dequantized CPU execution and do not demonstrate compressed-kernel acceleration. The final 27B GGUF claim is not validated by checked-in perplexity logs. The Qwen3.5-2B run used an inline fallback corpus and is not directly comparable to WikiText-2. Existing GGUF specifications in the repository need consolidation before external compatibility claims.
+
+\section{Conclusion}
+
+FABQ-RC proposes a structured path toward near-binary post-training quantization: protect important rows, adapt blocksize by layer, and correct residual bias with learned codebooks. Current repository evidence supports the design direction but does not yet support strong claims that the final 1-bit method beats existing baselines. The most reliable positive result is weight-level reconstruction improvement from FABQ-RC-lite over fixed binary quantizers. The most reliable negative result is that this simplified near-binary method fails language modeling quality. The variable-precision prototype recovers quality substantially at 4.5 bpw, suggesting that the strongest near-term research direction is calibrated variable precision with residual correction rather than an immediate pure 1-bit deployment claim.
+
+\begin{thebibliography}{9}
+\bibitem{gptq}
+E. Frantar, S. Ashkboos, T. Hoefler, and D. Alistarh.
+\newblock GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers.
+\newblock arXiv:2210.17323, 2022.
+\newblock \url{https://arxiv.org/abs/2210.17323}
+
+\bibitem{awq}
+J. Lin, J. Tang, H. Tang, S. Yang, W.-M. Chen, W.-C. Wang, G. Xiao, X. Dang, C. Gan, and S. Han.
+\newblock AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration.
+\newblock arXiv:2306.00978, 2023.
+\newblock \url{https://arxiv.org/abs/2306.00978}
+
+\bibitem{quip}
+J. Chee, Y. Cai, V. Kuleshov, and C. De Sa.
+\newblock QuIP: 2-Bit Quantization of Large Language Models With Guarantees.
+\newblock arXiv:2307.13304, 2023.
+\newblock \url{https://arxiv.org/abs/2307.13304}
+
+\bibitem{billm}
+W. Huang, Y. Liu, H. Qin, Y. Li, S. Zhang, X. Liu, M. Magno, and X. Qi.
+\newblock BiLLM: Pushing the Limit of Post-Training Quantization for LLMs.
+\newblock arXiv:2402.04291, 2024.
+\newblock \url{https://arxiv.org/abs/2402.04291}
+
+\bibitem{bitnet}
+S. Ma, H. Wang, L. Ma, L. Wang, W. Wang, S. Huang, L. Dong, R. Wang, J. Xue, and F. Wei.
+\newblock The Era of 1-bit LLMs: All Large Language Models are in 1.58 Bits.
+\newblock arXiv:2402.17764, 2024.
+\newblock \url{https://arxiv.org/abs/2402.17764}
+
+\bibitem{qwen3}
+A. Yang et al.
+\newblock Qwen3 Technical Report.
+\newblock arXiv:2505.09388, 2025.
+\newblock \url{https://arxiv.org/abs/2505.09388}
+\end{thebibliography}
+
+\end{document}
