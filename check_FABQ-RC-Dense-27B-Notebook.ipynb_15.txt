@@ -1,3 +1,0 @@
-### 3.3 Stage 2 — Mixed-Precision Core Allocation
-
-Top 5% Fisher channels → int8 (preserve accuracy). Bottom 95% → binary ±1 (compact).

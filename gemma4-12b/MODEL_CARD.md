@@ -116,7 +116,7 @@ The bucket `toxzak/gemma-4-12B-it-fabq-rc-bucket` contains:
   quantizes the model end-to-end (still uses the FP16 reconstruction
   path, but is multimodal-capable).
 - **Tied embeddings stay in BF16** (~2 GB). Quantizing them is possible
-  but out of scope for v1; see `../FABQ_RC_GGUF_SPEC.md` for the design.
+  but out of scope for v1; see `../docs/specs/FABQ_RC_GGUF_SPEC.md` for the design.
 
 ## Citation
 

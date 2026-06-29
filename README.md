@@ -1,163 +1,86 @@
----
-license: apache-2.0
-base_model:
-  - google/gemma-4-12B-it
-  - Qwen/Qwen3.6-27B
-  - deepseek-ai/DeepSeek-V4-Flash
-tags:
-  - quantization
-  - 1-bit
-  - fabq-rc
-  - fisher-adaptive
-  - research
-  - code
-pipeline_tag: other
-library_name: fabq-rc
----
+# FABQ-RC
 
-# FABQ-RC: Fisher-Adaptive Binary Quantization with Residual Codebooks
+Fisher-Adaptive Binary Quantization with Residual Codebooks.
 
-## A Vigorous Scientific Research Experiment
+This repository is an active research prototype for sub-byte LLM
+quantization. Treat the current state as a validated prototype plus known
+gaps, not as a final benchmark release. The strongest checked-in evidence is
+in `results/`, `docs/validation/VALIDATION_MEMO.md`, and `paper/`.
 
-**Status:** Active
-**Duration:** April 2026 - Present
+## Current Status
 
----
+- Method and format specs are organized under `docs/specs/`.
+- Validation notes live under `docs/validation/`.
+- Measured benchmark and runtime artifacts live under `results/`.
+- Paper and Substack drafts live under `paper/`.
+- Historical notebook repair/extraction material is preserved under
+  `artifacts/` and `scripts/notebook-maintenance/`.
 
-## What Is FABQ-RC?
+Key caveat: older `~1.18 bpw` and final `27B` claims are not fully validated.
+Use the validation memo and result files as the source of truth before making
+publication or model-card claims.
 
-FABQ-RC is a 1-bit quantization method for large language models that adapts per layer rather than using a fixed blocksize. It combines:
+## Repository Layout
 
-1. **Fisher-Weighted Channel Importance** — Which channels actually matter for loss?
-2. **Mixed-Precision Core Allocation** — int8 for critical channels, binary for the rest
-3. **Adaptive Blocksize** — Per-layer blocksize selection, not global
-4. **Residual Codebook** — k-means corrects systematic binary bias
-
-**Target:** ~1.18 bits per parameter, beating BiLLM on quality
-
----
-
-## The Method
-
-### Why Fisher > Hessian > Magnitude
-
-| Metric | What it measures | Problem |
-|--------|-----------------|---------|
-| **Magnitude** | Weight absolute value | Big weights aren't always important |
-| **Hessian** | Loss curvature at current θ | Local only, expensive to compute |
-| **Fisher** | Expected gradient² over data | Captures average importance, tractable |
-
-### Four Stages
-
-```
-FP32 Weights
-    │
-    ▼
-Stage 1: Fisher-Weighted Channel Importance
-    │
-Stage 2: Mixed-Precision Core Allocation
-    │  Top 5% channels → int4
-    │  Bottom 95% channels → binary ±1
-    ▼
-Stage 3: Adaptive Blocksize Selection
-    │  Per-layer blocksize {64, 128, 256, 512}
-    ▼
-Stage 4: Residual Codebook Clustering
-    │  4 tiered codebooks × 64 centroids
-    │  4-bit indices per block
-    ▼
-FABQ-RC Quantized Model
-    │
-    ▼
-GGUF Export
-```
-
-### Why Residual Codebook > Linear Approximation
-
-BiLLM approximates residuals as a linear function of the weight value. FABQ-RC's k-means codebook is nonlinear and captures arbitrary residual patterns without assuming a functional form.
-
----
-
-## Quick Start
-
-### Download the Model
-
-```python
-from huggingface_hub import snapshot_download
-
-model_path = snapshot_download("toxzak/Qwen3.6-27B-FABQ-RC-GGUF")
-```
-
-### Use with llama.cpp
-
-```bash
-# Example inference command
-./llama-cli -m Qwen3.6-27B-FABQ-RC-Q4_K_M.gguf -n 256 -p "The future of 1-bit quantization is"
-```
-
-### Evaluate
-
-```python
-# Perplexity on WikiText-2
-./llama-perplexity -m Qwen3.6-27B-FABQ-RC-Q4_K_M.gguf -f wikitext.txt
-```
-
----
-
-## Model Details
-
-| Property | Value |
-|----------|-------|
-| **Base Model** | Qwen/Qwen3.6-27B |
-| **Format** | GGUF |
-| **Bits per parameter** | ~1.18 bpw |
-| **Architecture** | FABQ-RC (Fisher-Adaptive Binary Quantization with Residual Codebooks) |
-| **Calibration** | C4 dataset, 2048 samples |
-
----
-
-## Key Results
-
-| Method | bpw | Perplexity | Notes |
-|--------|-----|------------|-------|
-| FP16 | 16.0 | baseline | |
-| Q1_0_g128 | 1.125 | degraded | Bonsai's format |
-| BiLLM | 1.08 | ~8.41 (70B) | Best prior work |
-| **FABQ-RC** | ~1.18 | target < 8.0 | Our method |
-
----
-
-## Files
-
-```
+```text
 fabq-rc/
-├── README.md                              ← This file
-├── FABQ_RC_SPEC.md                       ← Full method specification
-├── FABQRC_PLAN.md                        ← Research plan
-├── Main-FABQ-RC-Notebook.ipynb          ← Main quantization notebook
-├── FABQ-RC-Dense-27B-Notebook.ipynb     ← Dense model experiments
-└── plans/
-    ├── CALIBRATION-ROBUSTNESS-PLAN.md  ← Calibration improvements
-    ├── FABQ-VP-SPEC.md                  ← Variable precision extension
-    ├── EBQ-SPEC.md                      ← Error-budget allocation
-    └── UNIFIED-SPEC.md                   ← Combined architecture
+  README.md                    Project map and current status
+  CHANGELOG.md                 Sync history
+  benchmarks/                  Benchmark runners and helper tests
+  docs/
+    specs/                     Core method and GGUF specs
+    validation/                Validation memo and claim audit
+    model-cards/               Draft model-card material
+    notes/                     Loose research notes
+  paper/                       Preprint and Substack publication drafts
+  plans/                       Research plans and extension specs
+  results/                     Benchmark JSON, logs, and reports
+  notebooks/
+    archive/                   Root notebooks moved out of the repo root
+    latest/                    Former `latest notebooks/` contents
+  scripts/
+    gguf/                      GGUF export and smoke-test scripts
+    notebook-maintenance/      One-off notebook cleaning/debug helpers
+    publishing/                Hugging Face staging/publishing helper
+  artifacts/
+    notebook-extractions/      Extracted notebook cells and summaries
+    scratch/                   Tiny scratch outputs
+  assets/images/               Images used by docs or notes
+  logs/                        Local crash logs and runtime logs
+  gemma4-12b/                  Gemma 4 12B variant and streaming runtime
+  finetune/                    Finetuning helper
+  legacy/                      Older project material
+  models/                      Local model cache/placeholders
 ```
 
----
+## Main Entry Points
 
-## Citation
+- `docs/specs/FABQ_RC_SPEC.md` - primary FABQ-RC method specification.
+- `docs/specs/FABQ_RC_GGUF_SPEC.md` - root GGUF format draft.
+- `docs/validation/VALIDATION_MEMO.md` - claim audit and validation gaps.
+- `results/qwen35_08b_weight_quant.md` - measured Qwen3.5 0.8B weight
+  quantization summary.
+- `results/runtime_validation_report.md` and
+  `results/fabq_runtime_validation_report.md` - runtime validation reports.
+- `paper/FABQ_RC_preprint.md` - conservative technical-report draft.
+- `paper/substack/README.md` - three-post reader-facing publication series.
+- `notebooks/archive/Main-FABQ-RC-Notebook.ipynb` - archived main notebook.
+- `notebooks/archive/FABQ-RC-Dense-27B-Notebook.ipynb` - archived dense 27B
+  experiment notebook.
+- `scripts/publishing/push_to_hf.py` - curated Hugging Face staging helper.
 
-```
-FABQ-RC: Fisher-Adaptive Binary Quantization with Residual Codebooks
-Zach Maronek, 2026
-```
+## Validation Guidance
 
----
+Before presenting FABQ-RC as a release-ready result, check:
+
+1. Storage accounting against `docs/validation/VALIDATION_MEMO.md`.
+2. Perplexity and runtime numbers in `results/`.
+3. Whether the padded-centroid issue in `plans/RESEARCH-PLAN.md` is verified.
+4. Whether the GGUF spec being referenced is the intended canonical version.
+
+The project has useful negative and prototype results, but the README and
+model-card claims should stay conservative until those checks are complete.
 
 ## License
 
-Apache 2.0 (see Hugging Face model page for details)
-
----
-
-*Built by Zach Maronek · April 2026*
+Apache 2.0.

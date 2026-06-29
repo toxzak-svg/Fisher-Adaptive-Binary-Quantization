@@ -43,6 +43,8 @@ def build_codebook(
         for ch in binary_chs[::step]:
             for start in range(0, weights.shape[1], bs):
                 end = min(start + bs, weights.shape[1])
+                if end - start < bs:
+                    continue
                 block = weights[ch, start:end]
                 std = float(block.std()) + 1e-8
                 block_q = np.where(block > 0, 1.0, -1.0) * std

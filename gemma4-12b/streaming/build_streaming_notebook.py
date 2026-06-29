@@ -429,7 +429,7 @@ md(r'''
       doable but lower priority since it's only ~2 GB.
 - [ ] **GGUF export** — write the FABQ-RC buffers to a GGUF file so the
       quantized model can be loaded by llama.cpp (requires GGML_TYPE_FABQ_RC
-      support, see `../FABQ_RC_GGUF_SPEC.md`).
+      support, see `../docs/specs/FABQ_RC_GGUF_SPEC.md`).
 - [ ] **Multi-tier codebook** — the on-disk format already supports 4 tiers;
       v1 uses tier 0 only. Tier-aware quantization should give a few % quality
       gain at the same bpw.

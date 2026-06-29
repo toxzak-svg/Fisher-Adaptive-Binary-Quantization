@@ -1,20 +1,20 @@
 # FABQ-RC + Variable Precision Research Plan
 
 **Date:** 2026-05-04
-**Last Updated:** 2026-05-28
+**Last Updated:** 2026-06-28
 **Status:** Active
 
 ---
 
 ## Executive Summary
 
-FABQ-RC is a working 1-bit quantization method with:
+FABQ-RC is an active near-binary quantization prototype with:
 - Fisher-weighted channel importance
 - Adaptive per-layer blocksize selection
 - Residual codebook for bias correction
-- GGUF export for inference
+- GGUF export work in progress
 
-FABQ-VP and EBQ are planned extensions.
+FABQ-VP and EBQ now have a dense-dequantized prototype path.
 
 This plan covers two complementary research directions building on FABQ-RC:
 
@@ -27,10 +27,11 @@ This plan covers two complementary research directions building on FABQ-RC:
 
 ## Current State
 
-- FABQ-RC is a working 1-bit method validated on TinyLlama
-- Bug fix pending for padded-block centroid issue (cells 19, 21)
-- FABQ-RC achieves ~1.18 bpw with good quality
-- No variable-precision work has started yet
+- The padded-block residual/codebook sampling bug is fixed in `gemma4-12b/streaming/fabq_rc_cuda/kmeans.py` and covered by `tests/test_kmeans.py`.
+- The old `~1.18 bpw with good quality` claim is not validated by current checked-in results.
+- Near-binary FABQ-RC-lite improves reconstruction but fails language-model quality.
+- The strongest current path is dense-dequantized unified FABQ-VP/EBQ around 4.5 physical bpw.
+- A 1024-token Qwen3-0.6B baseline now exists in `results/qwen3_06b_baseline_1024_report.md`.
 
 ---
 
@@ -44,10 +45,12 @@ This plan covers two complementary research directions building on FABQ-RC:
 
 **Fix Required:** Skip centroid assignment for blocks that contain padding.
 
+**Status 2026-06-28:** Fixed in the shared codebook builder. Incomplete tail blocks are skipped before residual samples are added to k-means training. Regression coverage: `gemma4-12b/streaming/fabq_rc_cuda/tests/test_kmeans.py`.
+
 **Verification:**
-- Run FABQ_RC_Kaggle.ipynb with fixed cells
-- Compare layer output cosine similarity before/after
-- Target: all layers > 0.98 cosine similarity
+- Unit regression: passed locally on 2026-06-28.
+- Full FABQ-RC residual-codebook evaluation with the fixed builder still needs to run before claiming the original FABQ-RC path is validated.
+- Target for the full run: all layers > 0.98 cosine similarity, plus end-to-end perplexity on the same corpus as the dense baseline.
 
 ### 0.2 Baseline Perplexity Measurement
 
@@ -57,6 +60,8 @@ This plan covers two complementary research directions building on FABQ-RC:
 3. Compare against BiLLM at similar bpw
 
 **Deliverable:** Validated baseline numbers for FABQ-RC v2
+
+**Status 2026-06-28:** Partial baseline established for Qwen3-0.6B. Dense BF16 PPL is 50.7062 over 1016 scored WikiText-2 tokens. Unified FABQ-VP/EBQ at estimated 4.5255 bpw reaches 59.5981 PPL on the same slice. See `results/qwen3_06b_baseline_1024_report.md`.
 
 ---
 
@@ -348,9 +353,9 @@ class FABQEBQContainer:
 ## Todo Summary
 
 ### Phase 0: Validation (Blocking)
-- [ ] Fix padded-block centroid bug in FABQ-RC
+- [x] Fix padded-block centroid bug in FABQ-RC codebook sampling
 - [ ] Run FABQ-RC evaluation with fix
-- [ ] Confirm baseline perplexity numbers
+- [x] Confirm local Qwen3-0.6B dense and 4.5 bpw FABQ-VP perplexity numbers
 
 ### Phase 1: FABQ-VP Prototype  
 - [ ] Implement 5-level precision pyramid

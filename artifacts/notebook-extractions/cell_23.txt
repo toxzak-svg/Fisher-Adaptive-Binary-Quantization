@@ -1,0 +1,62 @@
+print("🎨 Generating residual codebook (this may take a minute)...\n")
+
+def build_codebook_fixed(model, allocation, blocksize_results, cal_loader, device, n_clusters=256, max_samples=8192):
+    model.eval()
+    all_residuals = []
+    sample_count = 0
+    max_bs = max(BS_CANDIDATES)
+
+    # Use a simpler approach to collect residuals directly from model weights
+    for name, module in tqdm(list(model.named_modules()), desc="Collecting residuals"):
+        if isinstance(module, nn.Linear) and name in allocation:
+            # FIX: Explicitly cast to float32 before converting to numpy to avoid BFloat16 TypeError
+            weights = module.weight.detach().to(torch.float32).cpu().numpy()
+            bs = blocksize_results.get(name, 16)
+            binary_chs = [ch for ch, prec in allocation[name].items() if prec == 'binary']
+
+            # Sample every nth channel for better representation
+            sample_step = max(1, len(binary_chs) // 20)
+            for ch in binary_chs[::sample_step]:
+                for start in range(0, weights.shape[1], bs):
+                    end = min(start + bs, weights.shape[1])
+                    block = weights[ch, start:end]
+                    scale = block.std() + 1e-8
+                    block_q = np.where(block > 0, 1.0, -1.0) * scale
+                    residual = (block - block_q).flatten()
+
+                    # Pad to consistent length
+                    padded = np.pad(residual, (0, max_bs - len(residual)))
+                    all_residuals.append(padded)
+                    sample_count += 1
+                    if sample_count >= max_samples: break
+                if sample_count >= max_samples: break
+        if sample_count >= max_samples: break
+
+    residuals_array = np.array(all_residuals, dtype=np.float32)
+
+    # CRITICAL FIX: Remove NaNs or Infs that cause KMeans to fail
+    mask = np.all(np.isfinite(residuals_array), axis=1)
+    clean_residuals = residuals_array[mask]
+    
+    if len(clean_residuals) == 0:
+        raise ValueError("All residuals filtered out - check quantization math. "
+                        "This may indicate numerical instability in the quantization process.")
+
+    print(f"   Collected {len(residuals_array)} blocks, {len(clean_residuals)} are valid.")
+
+    print("   Clustering residuals with KMeans...")
+    kmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42, batch_size=1024, n_init=3)
+    kmeans.fit(clean_residuals)
+    return kmeans.cluster_centers_
+
+codebook = build_codebook_fixed(model, allocation, blocksize_results, cal_loader, DEVICE)
+
+# 2. Visualize the results with PCA
+pca = PCA(n_components=2)
+codebook_2d = pca.fit_transform(codebook)
+
+fig, ax = plt.subplots(figsize=(8, 6))
+scatter = ax.scatter(codebook_2d[:, 0], codebook_2d[:, 1], c=range(len(codebook)), cmap='viridis', alpha=0.7, s=20)
+ax.set_title(f'Residual Codebook — 256 Centroids (PCA projection)\nVariance explained: {pca.explained_variance_ratio_.sum() * 100:.1f}%')
+plt.colorbar(scatter, label='Centroid index')
+plt.show()

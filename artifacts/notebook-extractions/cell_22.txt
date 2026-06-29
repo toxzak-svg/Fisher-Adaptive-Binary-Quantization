@@ -1,0 +1,69 @@
+def build_codebook(model, allocation, blocksize_results, cal_loader, device, n_clusters=256, max_samples=8192):
+    """
+    Collects residuals from binary-quantized weights across all layers and clusters
+    them into a shared codebook, handling adaptive blocksizes via padding.
+    """
+    model.eval()
+    all_residuals = []
+    sample_count = 0
+
+    # Identify the largest possible blocksize for padding consistency
+    max_bs = max(BS_CANDIDATES)
+
+    for batch in tqdm(cal_loader, desc="Building residual codebook", total=min(len(cal_loader), max_samples // 8)):
+        if sample_count >= max_samples:
+            break
+
+        input_ids = batch['input_ids'].to(device)
+        labels = batch['labels'].to(device)
+
+        # Forward pass to keep state if needed (though we primarily need weights)
+        outputs = model(input_ids)
+        model.zero_grad()
+
+        for name, module in model.named_modules():
+            if not isinstance(module, nn.Linear) or name not in allocation:
+                continue
+
+            weights = module.weight.detach().cpu().numpy()
+            bs = blocksize_results.get(name, 128)
+            alloc = allocation[name]
+            binary_chs = [ch for ch, prec in alloc.items() if prec == 'binary']
+
+            if not binary_chs:
+                continue
+
+            for ch in binary_chs:
+                for start in range(0, weights.shape[1], bs):
+                    end = min(start + bs, weights.shape[1])
+                    block = weights[ch, start:end]
+
+                    # Reconstruct binary version to find the residual
+                    scale = block.std() + 1e-8
+                    block_q = np.where(block > 0, 1.0, -1.0) * scale
+                    residual = block - block_q
+
+                    # Flatten and pad to max_bs so the numpy array is homogeneous
+                    res_flat = residual.flatten()
+                    pad_size = max_bs - len(res_flat)
+
+                    # Fix: Ensure pad_width is a tuple of (before, after) pairs
+                    padded_res = np.pad(res_flat, (0, pad_size), mode='constant')
+
+                    all_residuals.append(padded_res)
+                    sample_count += 1
+
+                    if sample_count >= max_samples:
+                        break
+                if sample_count >= max_samples:
+                    break
+
+    residuals_array = np.array(all_residuals, dtype=np.float32)
+    print(f"   Collected {residuals_array.shape[0]} residual blocks.")
+
+    # Cluster the padded residuals
+    kmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42, batch_size=1024, n_init=3)
+    kmeans.fit(residuals_array)
+
+    print(f"   Built codebook with {n_clusters} centroids")
+    return kmeans.cluster_centers_

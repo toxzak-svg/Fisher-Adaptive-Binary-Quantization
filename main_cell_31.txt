@@ -1,2 +1,0 @@
-### Workaround for Download Hanging
-Copy the model directly to your Google Drive to bypass the browser download widget.

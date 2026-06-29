@@ -126,6 +126,6 @@ For Gemma 4 12B (~12.5B params, 36 layers, hidden 3072):
 
 ## Reference
 
-- Parent spec: `../FABQ_RC_GGUF_SPEC.md`
+- Parent spec: `../docs/specs/FABQ_RC_GGUF_SPEC.md`
 - llama.cpp Gemma 3 implementation: `llama.cpp/models/llama.cpp:gemma3`
   (gemma4 support expected to land in the same file)

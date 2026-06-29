@@ -31,7 +31,7 @@ It includes two variants:
 
 The base notebook was adapted from:
 
-- `latest notebooks/Main_FABQ_RC_Notebook.ipynb` — the Qwen3.6-27B baseline
+- `../notebooks/latest/Main_FABQ_RC_Notebook.ipynb` — the Qwen3.6-27B baseline
 - `notebooks/build_v4_flash_notebook.py` — the cleaner script-style
   structure used to build the DeepSeek V4-Flash notebook
 

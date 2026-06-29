@@ -1,0 +1,27 @@
+class DynamicResidualCodebook(nn.Module):
+    """Dynamic residual codebook that applies routing-aware scaling."""
+    def __init__(self, centroids: torch.Tensor, device='cuda'):
+        super().__init__()
+        # centroids should be shape (256, 128)
+        self.register_buffer('centroids', centroids.to(device).to(torch.float16))
+
+    def forward(self, residuals: torch.Tensor, routing_gate: torch.Tensor = None) -> torch.Tensor:
+        # residuals shape: (batch_size, num_blocks, 128)
+        original_shape = residuals.shape
+        res_flat = residuals.view(-1, original_shape[-1])
+
+        # Compute L2 distances
+        distances = torch.cdist(res_flat.to(torch.float32), self.centroids.to(torch.float32))
+        closest_idx = distances.argmin(dim=1)
+
+        # Retrieve nearest centroids
+        quantized_residuals = self.centroids[closest_idx].view(original_shape)
+
+        if routing_gate is not None:
+            # Apply routing-aware scaling (e.g., using mean activity)
+            scaling_factor = routing_gate.mean() + 1e-8
+            quantized_residuals = quantized_residuals * scaling_factor
+
+        return quantized_residuals
+
+print("✅ DynamicResidualCodebook module added.")
